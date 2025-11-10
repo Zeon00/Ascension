@@ -35,7 +35,7 @@ local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(1, -70, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 5)
 Title.BackgroundTransparency = 1
-Title.Text = "⚙️ Auto Tools"
+Title.Text = "⚙️ Auto Tower"
 Title.Font = Enum.Font.GothamBold
 Title.TextColor3 = Color3.fromRGB(25, 25, 25)
 Title.TextSize = 18
@@ -103,7 +103,7 @@ FloorLabel.BackgroundTransparency = 1
 FloorLabel.Font = Enum.Font.GothamSemibold
 FloorLabel.TextColor3 = Color3.fromRGB(40, 40, 40)
 FloorLabel.TextSize = 16
-FloorLabel.Text = "🏢 Floor: N/A"
+FloorLabel.Text = "Floor: N/A"
 FloorLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Update floor text realtime dari workspace tower display
@@ -248,16 +248,16 @@ local towerThread
 
 towerBtn.MouseButton1Click:Connect(function()
 	towerEnabled = not towerEnabled
-	towerBtn.Text = "Auto Tower Loop: "..(towerEnabled and "ON" or "OFF")
+	towerBtn.Text = "Auto Tower Loop: " .. (towerEnabled and "ON" or "OFF")
 	towerBtn.BackgroundColor3 = towerEnabled and Color3.fromRGB(50,200,90) or Color3.fromRGB(200,50,50)
 
 	if towerEnabled then
 		towerThread = task.spawn(function()
-			local Tower = Workspace.Map.Tower
-			local Items = Tower.Items
-			local EnemySpawn = Items.EnemySpawn
-			local NextFloor = Items.NextFloor
-			local TowerDoor = Items.TowerDoor
+			local Tower = Workspace.Map:WaitForChild("Tower")
+			local Items = Tower:WaitForChild("Items")
+			local EnemySpawn = Items:WaitForChild("EnemySpawn")
+			local NextFloor = Items:WaitForChild("NextFloor")
+			local DisplayBottom = Items:WaitForChild("VFX"):WaitForChild("Display"):WaitForChild("Frame"):WaitForChild("Bottom")
 			local TowerRemote = ReplicatedStorage.Remotes.Tower
 			local CombatRemote = ReplicatedStorage.Remotes.Combat
 			local hrp = player.Character:WaitForChild("HumanoidRootPart")
@@ -267,23 +267,34 @@ towerBtn.MouseButton1Click:Connect(function()
 					hrp.CFrame = part.CFrame + Vector3.new(0,3,0)
 				end
 			end
-			local function enterTower() TowerRemote:FireServer("Enter") end
-			local function exitTower() CombatRemote:FireServer("StopFight") end
+
+			local function enterTower()
+				pcall(function() TowerRemote:FireServer("Enter") end)
+			end
+
+			local function stopFight()
+				pcall(function() CombatRemote:FireServer("StopFight") end)
+			end
+
 			local function getEnemy()
-				local closest,dist=nil,math.huge
-				for _,e in ipairs(EnemySpawn:GetChildren()) do
-					local h=e:FindFirstChild("Humanoid")
-					local r=e:FindFirstChild("HumanoidRootPart")
-					if h and r and h.Health>0 then
-						local d=(hrp.Position-r.Position).Magnitude
-						if d<dist then dist=d; closest=e end
+				local closest, dist = nil, math.huge
+				for _, e in ipairs(EnemySpawn:GetChildren()) do
+					local h = e:FindFirstChild("Humanoid")
+					local r = e:FindFirstChild("HumanoidRootPart")
+					if h and r and h.Health > 0 then
+						local d = (hrp.Position - r.Position).Magnitude
+						if d < dist then
+							dist = d
+							closest = e
+						end
 					end
 				end
 				return closest
 			end
+
 			local function clearAll()
 				repeat
-					local e=getEnemy()
+					local e = getEnemy()
 					if e and e:FindFirstChild("HumanoidRootPart") then
 						tpTo(e.HumanoidRootPart)
 					end
@@ -291,27 +302,36 @@ towerBtn.MouseButton1Click:Connect(function()
 				until not getEnemy()
 			end
 
+			enterTower()
+			task.wait(2)
+
+			local floorInternal = 1 -- ✅ floor internal untuk loop sendiri
+
 			while towerEnabled do
-				enterTower()
-				task.wait(2)
-				local floor=1
-				while floor<=330 and towerEnabled do
+				-- ambil text dari display
+				local text = tostring(DisplayBottom.Text or "")
+				local displayNum = tonumber(text:match("%d+")) or floorInternal
+
+				-- update GUI title
+				Title.Text = "⚙️ Auto Tools | Floor: " .. displayNum
+
+				if displayNum >= 325 then
+					stopFight()
+					warn("[Auto Tower] Reached Floor 325 → StopFight sent.")
+					floorInternal = 1 -- ✅ reset internal floor
+					task.wait(3)
+					break
+				else
 					clearAll()
-					if floor<330 then
-						tpTo(NextFloor)
-						task.wait(2)
-						floor+=1
-					else
-						tpTo(TowerDoor)
-						task.wait(2)
-						exitTower()
-						task.wait(5)
-						break
-					end
+					tpTo(NextFloor)
+					task.wait(2)
+					floorInternal += 1 -- ✅ increment internal floor
 				end
 			end
 		end)
 	else
-		if towerThread then task.cancel(towerThread) end
+		if towerThread then
+			task.cancel(towerThread)
+		end
 	end
 end)
