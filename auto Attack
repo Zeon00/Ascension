@@ -1,0 +1,230 @@
+-- // Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- // Remote
+local Remote = ReplicatedStorage:WaitForChild("Modules")
+    :WaitForChild("Network")
+    :WaitForChild("Network")
+    :WaitForChild("RemoteEvent")
+
+-- // GUI Setup
+local screenGui = Instance.new("ScreenGui", playerGui)
+screenGui.Name = "AutoAttackGUI"
+screenGui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 200, 0, 150)
+frame.Position = UDim2.new(0.5, -100, 0.5, -75)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Visible = true
+
+local titleBar = Instance.new("Frame", frame)
+titleBar.Size = UDim2.new(1, 0, 0, 26)
+titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+local title = Instance.new("TextLabel", titleBar)
+title.Size = UDim2.new(1, -50, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Auto Attack"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+local closeBtn = Instance.new("TextButton", titleBar)
+closeBtn.Size = UDim2.new(0, 24, 0, 24)
+closeBtn.Position = UDim2.new(1, -28, 0, 1)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+closeBtn.AutoButtonColor = false
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+local minimizeBtn = Instance.new("TextButton", titleBar)
+minimizeBtn.Size = UDim2.new(0, 24, 0, 24)
+minimizeBtn.Position = UDim2.new(1, -56, 0, 1)
+minimizeBtn.Text = "-"
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextSize = 14
+minimizeBtn.TextColor3 = Color3.new(1, 1, 1)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+minimizeBtn.AutoButtonColor = false
+
+local minimized = false
+minimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _, obj in ipairs(frame:GetChildren()) do
+        if obj ~= titleBar then
+            obj.Visible = not minimized
+        end
+    end
+    frame.Size = minimized and UDim2.new(0, 200, 0, 26) or UDim2.new(0, 200, 0, 150)
+end)
+
+-- // Buttons
+local toggleButton = Instance.new("TextButton", frame)
+toggleButton.Size = UDim2.new(1, -20, 0, 32)
+toggleButton.Position = UDim2.new(0, 10, 0, 40)
+toggleButton.Text = "OFF"
+toggleButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Font = Enum.Font.Gotham
+toggleButton.TextSize = 14
+toggleButton.AutoButtonColor = false
+
+local dropdown = Instance.new("TextButton", frame)
+dropdown.Size = UDim2.new(1, -20, 0, 32)
+dropdown.Position = UDim2.new(0, 10, 0, 84)
+dropdown.Text = "Select World: 1"
+dropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+dropdown.TextColor3 = Color3.new(1, 1, 1)
+dropdown.Font = Enum.Font.Gotham
+dropdown.TextSize = 13
+dropdown.AutoButtonColor = false
+
+-- // Attack Data
+local worldData = {
+    ["1"] = {
+        "\000\000\001\001\000\004Monk",
+        "\000\000\001\001\000\aStudent",
+        "\000\000\001\001\000\aSamurai",
+        "\000\000\001\001\000\003Oni",
+        "\000\000\001\001\000\aWarrior"
+    },
+    ["2"] = {
+        "\000\000\001\001\000\003Odo",
+        "\000\000\001\001\000\005Newma",
+        "\000\000\001\001\000\004Yaha",
+        "\000\000\001\001\000\004Susa",
+        "\000\000\001\001\000\003Kyo"
+    },
+    ["3"] = {
+        "\000\000\001\001\000\014Brother Spider",
+        "\000\000\001\001\000\rSister Spider",
+        "\000\000\001\001\000\rMother Spider",
+        "\000\000\001\001\000\rFather Spider",
+        "\000\000\001\001\000\004Rewi"
+    },
+    ["4"] = {
+        "\000\000\001\001\000\006Waiter",
+        "\000\000\001\001\000\tConductor",
+        "\000\000\001\001\000\aSlasher",
+        "\000\000\001\001\000\003Emu",
+        "\000\000\001\001\000\003Aka"
+    },
+    ["5"] = {
+        "\000\000\001\001\000\nLeaf Demon",
+        "\000\000\001\001\000\fFlower Demon",
+        "\000\000\001\001\000\tDak Oiran",
+        "\000\000\001\001\000\003Dak",
+        "\000\000\001\001\000\003Gyu"
+    },
+    ["6"] = {
+        "\000\000\001\001\000\004Aize",
+        "\000\000\001\001\000\005Urogi",
+        "\000\000\001\001\000\004Kara",
+        "\000\000\001\001\000\003Gyo",
+        "\000\000\001\001\000\004Zoha"
+    },
+    ["7"] = {
+        "\000\000\001\001\000\tTen Pupil",
+        "\000\000\001\001\000\vTen Student",
+        "\000\000\001\001\000\fTen Disciple",
+        "\000\000\001\001\000\vTen Scholar",
+        "\000\000\001\001\000\nTen Sensei"
+    },
+    ["8"] = {
+        "\000\000\001\001\000\fMuichi Pupil",
+        "\000\000\001\001\000\014Muichi Student",
+        "\000\000\001\001\000\015Muichi Disciple",
+        "\000\000\001\001\000\014Muichi Scholar",
+        "\000\000\001\001\000\rMuichi Sensei"
+    },
+    ["9"] = {
+        "\000\000\001\001\000\vMitsu Pupil",
+        "\000\000\001\001\000\rMitsu Student",
+        "\000\000\001\001\000\014Mitsu Disciple",
+        "\000\000\001\001\000\rMitsu Scholar",
+        "\000\000\001\001\000\fMitsu Sensei"
+    },
+    ["10"] = {
+        "\000\000\001\001\000\nOban Pupil",
+        "\000\000\001\001\000\fOban Student",
+        "\000\000\001\001\000\rOban Disciple",
+        "\000\000\001\001\000\fOban Scholar",
+        "\000\000\001\001\000\vOban Sensei"
+    },
+    ["11"] = {
+        "\000\000\001\001\000\nOban Pupil",
+        "\000\000\001\001\000\fOban Student",
+        "\000\000\001\001\000\rOban Disciple",
+        "\000\000\001\001\000\fOban Scholar",
+        "\000\000\001\001\000\vOban Sensei"
+	},
+    ["12"] = {
+        "\000\000\001\001\000\nOban Pupil",
+        "\000\000\001\001\000\fOban Student",
+        "\000\000\001\001\000\rOban Disciple",
+        "\000\000\001\001\000\fOban Scholar",
+        "\000\000\001\001\000\vOban Sensei"	
+	},
+    ["13"] = {
+		"\000\000\001\001\000\vLower Demon",
+		"\000\000\001\001\000\014Nakim Infinity",
+		"\000\000\001\001\000\014Kaiga Infinity",
+		"\000\000\001\001\000\fAka Infinity",
+		"\000\000\001\001\000\rDoma Infinity"
+	}
+}
+
+-- // Logic
+local selectedWorld = "1"
+local attackRunning = false
+local attackLoop
+
+local function attackWorld(worldId)
+    local mobs = worldData[worldId]
+    if not mobs then return end
+    for _, mob in ipairs(mobs) do
+        local args = { buffer.fromstring(mob) }
+        pcall(function()
+            Remote:FireServer(unpack(args))
+        end)
+    end
+end
+
+toggleButton.MouseButton1Click:Connect(function()
+    attackRunning = not attackRunning
+    if attackRunning then
+        toggleButton.Text = "ON"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        attackLoop = task.spawn(function()
+            while attackRunning do
+                attackWorld(selectedWorld)
+                task.wait(0.02)
+            end
+        end)
+    else
+        toggleButton.Text = "OFF"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+        attackRunning = false
+    end
+end)
+
+dropdown.MouseButton1Click:Connect(function()
+    local nextWorld = tostring((tonumber(selectedWorld) % 10) + 1)
+    selectedWorld = nextWorld
+    dropdown.Text = "Select World: " .. selectedWorld
+end)
+
