@@ -1,0 +1,175 @@
+-- ⚔️ Auto Tower 1–330 with Persistent GUI
+-- Features: Auto Tower, Auto Next Floor, Auto Rejoin (Loop)
+-- GUI stays after exiting tower!
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- Remove old GUI if re-executed
+pcall(function()
+	if CoreGui:FindFirstChild("TowerAutoUI") then
+		CoreGui:FindFirstChild("TowerAutoUI"):Destroy()
+	end
+end)
+
+-- References
+local Tower = Workspace:WaitForChild("Map"):WaitForChild("Tower")
+local Items = Tower:WaitForChild("Items")
+local EnemySpawn = Items:WaitForChild("EnemySpawn")
+local NextFloor = Items:WaitForChild("NextFloor")
+local TowerDoor = Items:WaitForChild("TowerDoor")
+
+local TowerRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Tower")
+local CombatRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Combat")
+
+-- CONFIG
+local CURRENT_FLOOR = 1
+local MAX_FLOOR = 330
+local RUNNING = false
+local AUTO_NEXT = false
+local AUTO_REJOIN = false
+
+-- Function: Teleport to target
+local function tpTo(part)
+	if not (part and part:IsA("BasePart")) then return end
+	pcall(function()
+		hrp.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+	end)
+end
+
+-- Function: Enter Tower
+local function enterTower()
+	pcall(function()
+		TowerRemote:FireServer("Enter")
+	end)
+end
+
+-- Function: Exit Tower
+local function exitTower()
+	pcall(function()
+		CombatRemote:FireServer("StopFight")
+	end)
+end
+
+-- Function: Nearest Enemy
+local function getNearestEnemy()
+	local closest, dist = nil, math.huge
+	for _, enemy in ipairs(EnemySpawn:GetChildren()) do
+		local root = enemy:FindFirstChild("HumanoidRootPart")
+		local hum = enemy:FindFirstChild("Humanoid")
+		if root and hum and hum.Health > 0 then
+			local d = (hrp.Position - root.Position).Magnitude
+			if d < dist then
+				dist = d
+				closest = enemy
+			end
+		end
+	end
+	return closest
+end
+
+-- Function: Clear Enemies
+local function clearEnemies()
+	repeat
+		local enemy = getNearestEnemy()
+		if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+			tpTo(enemy.HumanoidRootPart)
+		end
+		task.wait(0.4)
+	until getNearestEnemy() == nil
+end
+
+-- Main Loop
+task.spawn(function()
+	while task.wait(1) do
+		if RUNNING then
+			enterTower()
+			task.wait(2)
+			CURRENT_FLOOR = 1
+
+			while RUNNING and CURRENT_FLOOR <= MAX_FLOOR do
+				clearEnemies()
+
+				if AUTO_NEXT and CURRENT_FLOOR < MAX_FLOOR then
+					tpTo(NextFloor)
+					task.wait(2)
+					CURRENT_FLOOR += 1
+				elseif CURRENT_FLOOR >= MAX_FLOOR then
+					print("🎯 Tower 330 reached!")
+					tpTo(TowerDoor)
+					exitTower()
+					task.wait(5)
+					if AUTO_REJOIN then
+						enterTower()
+						task.wait(3)
+						CURRENT_FLOOR = 1
+					else
+						RUNNING = false
+					end
+					break
+				end
+			end
+		end
+	end
+end)
+
+-- 🧩 GUI SETUP (in CoreGui)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "TowerAutoUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 180, 0, 150)
+Frame.Position = UDim2.new(1, -200, 1, -220)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.BackgroundTransparency = 0.2
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local UIStroke = Instance.new("UIStroke", Frame)
+UIStroke.Thickness = 1.6
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 25)
+Title.Text = "🏰 Tower Auto System"
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
+Title.Parent = Frame
+
+-- Function: Create Toggle
+local function createToggle(name, posY, callback)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, -20, 0, 30)
+	btn.Position = UDim2.new(0, 10, 0, posY)
+	btn.Text = name .. ": OFF"
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.Gotham
+	btn.TextSize = 13
+	btn.Parent = Frame
+
+	local state = false
+	btn.MouseButton1Click:Connect(function()
+		state = not state
+		btn.Text = name .. ": " .. (state and "ON" or "OFF")
+		btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(40, 40, 40)
+		callback(state)
+	end)
+end
+
+-- 🔘 Toggles
+createToggle("Auto Tower", 35, function(v) RUNNING = v end)
+createToggle("Auto Next Floor", 70, function(v) AUTO_NEXT = v end)
+createToggle("Auto Rejoin", 105, function(v) AUTO_REJOIN = v end)
