@@ -1,4 +1,4 @@
--- 🌟 Auto Behind + Auto Next Floor (Optimized + Minimize Icon)
+-- 🌟 Auto Behind + Auto Teleport + Auto Next Floor (Optimized + Minimize Icon)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -17,8 +17,8 @@ ScreenGui.Parent = playerGui
 
 -- === FRAME UTAMA ===
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 240, 0, 160)
-Frame.Position = UDim2.new(0.5, -120, 0.5, -80)
+Frame.Size = UDim2.new(0, 240, 0, 210)
+Frame.Position = UDim2.new(0.5, -120, 0.5, -105)
 Frame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
 Frame.BorderSizePixel = 0
 Frame.Active = true
@@ -97,7 +97,9 @@ Icon.MouseButton1Click:Connect(function()
 	Icon.Visible = false
 end)
 
+----------------------------------------------------------------
 -- === TOGGLE 1: Auto Behind Enemy ===
+----------------------------------------------------------------
 local BehindButton = Instance.new("TextButton", Frame)
 BehindButton.Size = UDim2.new(0, 200, 0, 40)
 BehindButton.Position = UDim2.new(0.5, -100, 0, 45)
@@ -158,10 +160,74 @@ BehindButton.MouseButton1Click:Connect(function()
 	toggleAutoBehind(behindEnabled)
 end)
 
--- === TOGGLE 2: Auto Next Floor ===
+----------------------------------------------------------------
+-- === TOGGLE 2: Auto Teleport to Enemy ===
+----------------------------------------------------------------
+local TeleportButton = Instance.new("TextButton", Frame)
+TeleportButton.Size = UDim2.new(0, 200, 0, 40)
+TeleportButton.Position = UDim2.new(0.5, -100, 0, 95)
+TeleportButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+TeleportButton.TextColor3 = Color3.new(1, 1, 1)
+TeleportButton.Font = Enum.Font.GothamBold
+TeleportButton.TextSize = 17
+TeleportButton.Text = "Auto Teleport: OFF"
+TeleportButton.BorderSizePixel = 0
+Instance.new("UICorner", TeleportButton).CornerRadius = UDim.new(0, 8)
+
+local teleportEnabled = false
+local teleportConnection
+
+local function toggleAutoTeleport(state)
+	if state then
+		if teleportConnection then teleportConnection:Disconnect() end
+		teleportConnection = RunService.Heartbeat:Connect(function()
+			local char = player.Character
+			if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+			local hrp = char.HumanoidRootPart
+
+			local enemiesFolder = Workspace:FindFirstChild("Client") and Workspace.Client:FindFirstChild("Enemies")
+			if not enemiesFolder then return end
+
+			local closestEnemy, closestDist
+			for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+				local hrp2 = enemy:FindFirstChild("HumanoidRootPart")
+				local hum = enemy:FindFirstChild("Humanoid")
+				if hrp2 and hum and hum.Health > 0 then
+					local dist = (hrp2.Position - hrp.Position).Magnitude
+					if not closestDist or dist < closestDist then
+						closestDist = dist
+						closestEnemy = enemy
+					end
+				end
+			end
+
+			if closestEnemy then
+				local eHRP = closestEnemy.HumanoidRootPart
+				-- Instantly teleport close to the enemy
+				hrp.CFrame = eHRP.CFrame * CFrame.new(0, 0, 3)
+			end
+		end)
+	else
+		if teleportConnection then
+			teleportConnection:Disconnect()
+			teleportConnection = nil
+		end
+	end
+end
+
+TeleportButton.MouseButton1Click:Connect(function()
+	teleportEnabled = not teleportEnabled
+	TeleportButton.Text = "Auto Teleport: " .. (teleportEnabled and "ON" or "OFF")
+	TeleportButton.BackgroundColor3 = teleportEnabled and Color3.fromRGB(50, 200, 90) or Color3.fromRGB(200, 50, 50)
+	toggleAutoTeleport(teleportEnabled)
+end)
+
+----------------------------------------------------------------
+-- === TOGGLE 3: Auto Next Floor ===
+----------------------------------------------------------------
 local NextFloorButton = Instance.new("TextButton", Frame)
 NextFloorButton.Size = UDim2.new(0, 200, 0, 40)
-NextFloorButton.Position = UDim2.new(0.5, -100, 0, 95)
+NextFloorButton.Position = UDim2.new(0.5, -100, 0, 145)
 NextFloorButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 NextFloorButton.TextColor3 = Color3.new(1, 1, 1)
 NextFloorButton.Font = Enum.Font.GothamBold
@@ -177,7 +243,7 @@ local lastSend = 0
 local function toggleAutoNextFloor(state)
 	if state then
 		if nextConnection then nextConnection:Disconnect() end
-		nextConnection = RunService.Heartbeat:Connect(function(step)
+		nextConnection = RunService.Heartbeat:Connect(function()
 			if tick() - lastSend >= 0.5 then
 				lastSend = tick()
 				pcall(function()
