@@ -19,7 +19,7 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = playerGui
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 240, 0, 280)
+Frame.Size = UDim2.new(0, 240, 0, 360)
 Frame.Position = UDim2.new(0.5, -120, 0.5, -140)
 Frame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
 Frame.BorderSizePixel = 0
@@ -315,9 +315,9 @@ towerBtn.MouseButton1Click:Connect(function()
 				-- update GUI title
 				Title.Text = "⚙️ Tower Floor: " .. displayNum
 
-				if displayNum >= 325 then
+				if displayNum >= 326 then
 					stopFight()
-					warn("[Auto Tower] Reached Floor 325 → StopFight sent.")
+					warn("[Auto Tower] Reached Floor 326 → StopFight sent.")
 					floorInternal = 1 -- ✅ reset internal floor
 					task.wait(3)
 					break
@@ -335,3 +335,71 @@ towerBtn.MouseButton1Click:Connect(function()
 		end
 	end
 end)
+-------------------------------------------------------------
+-- 🏰 TOGGLE 5: Auto Enter Tower Loop (1 detik)
+-------------------------------------------------------------
+local enterBtn = makeButton(265, "Auto Enter Tower: OFF")
+local enterEnabled = false
+local enterThread
+
+enterBtn.MouseButton1Click:Connect(function()
+	enterEnabled = not enterEnabled
+	enterBtn.Text = "Auto Enter Tower: " .. (enterEnabled and "ON" or "OFF")
+	enterBtn.BackgroundColor3 = enterEnabled and Color3.fromRGB(50,200,90) or Color3.fromRGB(200,50,50)
+
+	if enterEnabled then
+		enterThread = task.spawn(function()
+			local TowerRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Tower")
+			while enterEnabled do
+				pcall(function()
+					TowerRemote:FireServer("Enter")
+				end)
+				task.wait(1)
+			end
+		end)
+	else
+		if enterThread then
+			task.cancel(enterThread)
+		end
+	end
+end)
+-------------------------------------------------------------
+-- TOGGLE 6: AutoClick / AutoFight
+-------------------------------------------------------------
+local autoClickBtn = makeButton(315,"Auto Click: OFF")
+local autoClickEnabled = false
+local clickThread
+
+autoClickBtn.MouseButton1Click:Connect(function()
+	autoClickEnabled = not autoClickEnabled
+	autoClickBtn.Text = "Auto Click: " .. (autoClickEnabled and "ON" or "OFF")
+	autoClickBtn.BackgroundColor3 = autoClickEnabled and Color3.fromRGB(50,200,90) or Color3.fromRGB(200,50,50)
+
+	if autoClickEnabled then
+		clickThread = task.spawn(function()
+			local UIS = game:GetService("VirtualInputManager")
+			local playerGui = player:WaitForChild("PlayerGui")
+			local hud = playerGui:WaitForChild("HUD")
+			local frame = hud:WaitForChild("Frame")
+			local rightCenter = frame:WaitForChild("RightCenter")
+			local autoFight = rightCenter:WaitForChild("AutoFight")
+
+			while autoClickEnabled do
+				if autoFight and autoFight.Visible then
+					-- Klik tombol seolah manual
+					local posX = autoFight.AbsolutePosition.X + autoFight.AbsoluteSize.X/2
+					local posY = autoFight.AbsolutePosition.Y + autoFight.AbsoluteSize.Y/2
+					UIS:SendMouseButtonEvent(posX, posY, 0, true, game, 1) -- mouse down
+					UIS:SendMouseButtonEvent(posX, posY, 0, false, game, 1) -- mouse up
+				end
+				task.wait(0.1) -- interval klik (bisa diubah)
+			end
+		end)
+	else
+		if clickThread then
+			task.cancel(clickThread)
+		end
+	end
+end)
+
+
