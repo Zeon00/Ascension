@@ -1,0 +1,202 @@
+-- 🌟 Auto Behind + Auto Next Floor (Optimized + Minimize Icon)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- GUI Container
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoSystemGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = playerGui
+
+-- === FRAME UTAMA ===
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 240, 0, 160)
+Frame.Position = UDim2.new(0.5, -120, 0.5, -80)
+Frame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 10)
+local UIStroke = Instance.new("UIStroke", Frame)
+UIStroke.Thickness = 1.5
+UIStroke.Color = Color3.fromRGB(180, 180, 180)
+
+-- Title
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.new(1, -70, 0, 30)
+Title.Position = UDim2.new(0, 10, 0, 5)
+Title.BackgroundTransparency = 1
+Title.Text = "⚙️ Auto Tools"
+Title.Font = Enum.Font.GothamBold
+Title.TextColor3 = Color3.fromRGB(25, 25, 25)
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Close Button
+local CloseButton = Instance.new("TextButton", Frame)
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
+CloseButton.Position = UDim2.new(1, -30, 0, 5)
+CloseButton.Text = "✕"
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 90, 90)
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 20
+CloseButton.BorderSizePixel = 0
+Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(1, 0)
+
+-- Minimize Button
+local MinButton = Instance.new("TextButton", Frame)
+MinButton.Size = UDim2.new(0, 25, 0, 25)
+MinButton.Position = UDim2.new(1, -60, 0, 5)
+MinButton.Text = "–"
+MinButton.BackgroundColor3 = Color3.fromRGB(90, 170, 255)
+MinButton.TextColor3 = Color3.new(1, 1, 1)
+MinButton.Font = Enum.Font.GothamBold
+MinButton.TextSize = 22
+MinButton.BorderSizePixel = 0
+Instance.new("UICorner", MinButton).CornerRadius = UDim.new(1, 0)
+
+CloseButton.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+
+-- === ICON KECIL ===
+local Icon = Instance.new("TextButton")
+Icon.Name = "AutoIcon"
+Icon.Size = UDim2.new(0, 45, 0, 45)
+Icon.Position = UDim2.new(1, -55, 1, -55)
+Icon.AnchorPoint = Vector2.new(1, 1)
+Icon.BackgroundColor3 = Color3.fromRGB(90, 170, 255)
+Icon.Text = "⚙️"
+Icon.TextSize = 22
+Icon.TextColor3 = Color3.new(1, 1, 1)
+Icon.Font = Enum.Font.GothamBold
+Icon.Visible = false
+Icon.Parent = ScreenGui
+Instance.new("UICorner", Icon).CornerRadius = UDim.new(1, 0)
+local IconStroke = Instance.new("UIStroke", Icon)
+IconStroke.Thickness = 1.5
+IconStroke.Color = Color3.fromRGB(70, 120, 200)
+
+MinButton.MouseButton1Click:Connect(function()
+	Frame.Visible = false
+	Icon.Visible = true
+end)
+
+Icon.MouseButton1Click:Connect(function()
+	Frame.Visible = true
+	Icon.Visible = false
+end)
+
+-- === TOGGLE 1: Auto Behind Enemy ===
+local BehindButton = Instance.new("TextButton", Frame)
+BehindButton.Size = UDim2.new(0, 200, 0, 40)
+BehindButton.Position = UDim2.new(0.5, -100, 0, 45)
+BehindButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+BehindButton.TextColor3 = Color3.new(1, 1, 1)
+BehindButton.Font = Enum.Font.GothamBold
+BehindButton.TextSize = 17
+BehindButton.Text = "Auto Behind: OFF"
+BehindButton.BorderSizePixel = 0
+Instance.new("UICorner", BehindButton).CornerRadius = UDim.new(0, 8)
+
+local behindEnabled = false
+local behindConnection
+local behindDistance = 4
+
+local function toggleAutoBehind(state)
+	if state then
+		if behindConnection then behindConnection:Disconnect() end
+		behindConnection = RunService.Heartbeat:Connect(function()
+			local char = player.Character
+			if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+			local hrp = char.HumanoidRootPart
+
+			local enemiesFolder = Workspace:FindFirstChild("Client") and Workspace.Client:FindFirstChild("Enemies")
+			if not enemiesFolder then return end
+
+			local closestEnemy, closestDist
+			for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+				local hrp2 = enemy:FindFirstChild("HumanoidRootPart")
+				local hum = enemy:FindFirstChild("Humanoid")
+				if hrp2 and hum and hum.Health > 0 then
+					local dist = (hrp2.Position - hrp.Position).Magnitude
+					if not closestDist or dist < closestDist then
+						closestDist = dist
+						closestEnemy = enemy
+					end
+				end
+			end
+
+			if closestEnemy then
+				local eHRP = closestEnemy.HumanoidRootPart
+				local behindPos = eHRP.Position - (eHRP.CFrame.LookVector * behindDistance)
+				hrp.CFrame = CFrame.new(behindPos + Vector3.new(0, 2, 0), eHRP.Position)
+			end
+		end)
+	else
+		if behindConnection then
+			behindConnection:Disconnect()
+			behindConnection = nil
+		end
+	end
+end
+
+BehindButton.MouseButton1Click:Connect(function()
+	behindEnabled = not behindEnabled
+	BehindButton.Text = "Auto Behind: " .. (behindEnabled and "ON" or "OFF")
+	BehindButton.BackgroundColor3 = behindEnabled and Color3.fromRGB(50, 200, 90) or Color3.fromRGB(200, 50, 50)
+	toggleAutoBehind(behindEnabled)
+end)
+
+-- === TOGGLE 2: Auto Next Floor ===
+local NextFloorButton = Instance.new("TextButton", Frame)
+NextFloorButton.Size = UDim2.new(0, 200, 0, 40)
+NextFloorButton.Position = UDim2.new(0.5, -100, 0, 95)
+NextFloorButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+NextFloorButton.TextColor3 = Color3.new(1, 1, 1)
+NextFloorButton.Font = Enum.Font.GothamBold
+NextFloorButton.TextSize = 17
+NextFloorButton.Text = "Auto Next Floor: OFF"
+NextFloorButton.BorderSizePixel = 0
+Instance.new("UICorner", NextFloorButton).CornerRadius = UDim.new(0, 8)
+
+local nextEnabled = false
+local nextConnection
+local lastSend = 0
+
+local function toggleAutoNextFloor(state)
+	if state then
+		if nextConnection then nextConnection:Disconnect() end
+		nextConnection = RunService.Heartbeat:Connect(function(step)
+			if tick() - lastSend >= 0.5 then
+				lastSend = tick()
+				pcall(function()
+					local args = {"NextFloor"}
+					ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Tower"):FireServer(unpack(args))
+				end)
+			end
+		end)
+	else
+		if nextConnection then
+			nextConnection:Disconnect()
+			nextConnection = nil
+		end
+	end
+end
+
+NextFloorButton.MouseButton1Click:Connect(function()
+	nextEnabled = not nextEnabled
+	NextFloorButton.Text = "Auto Next Floor: " .. (nextEnabled and "ON" or "OFF")
+	NextFloorButton.BackgroundColor3 = nextEnabled and Color3.fromRGB(50, 200, 90) or Color3.fromRGB(200, 50, 50)
+	toggleAutoNextFloor(nextEnabled)
+end)
