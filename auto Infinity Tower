@@ -19,7 +19,7 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = playerGui
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 240, 0, 360)
+Frame.Size = UDim2.new(0, 240, 0, 420)
 Frame.Position = UDim2.new(0.5, -120, 0.5, -140)
 Frame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
 Frame.BorderSizePixel = 0
@@ -363,13 +363,31 @@ enterBtn.MouseButton1Click:Connect(function()
 		end
 	end
 end)
--------------------------------------------------------------
--- TOGGLE 6: AutoClick / AutoFight
--------------------------------------------------------------
+-- TOGGLE 6: AutoClick / AutoFight (with Record)
 local autoClickBtn = makeButton(315,"Auto Click: OFF")
+local recordBtn = makeButton(365,"Record Position")
 local autoClickEnabled = false
 local clickThread
+local clickPos = nil -- disimpan setelah record
 
+-- Record posisi manual
+recordBtn.MouseButton1Click:Connect(function()
+	local playerGui = player:WaitForChild("PlayerGui")
+	local mouse = player:GetMouse()
+	
+	-- info klik pertama
+	print("📌 Klik tombol target sekali di GUI sekarang...")
+	
+	-- tunggu klik mouse
+	local conn
+	conn = mouse.Button1Down:Connect(function()
+		clickPos = Vector2.new(mouse.X, mouse.Y)
+		print("✅ Posisi direkam:", clickPos)
+		conn:Disconnect()
+	end)
+end)
+
+-- AutoClick toggle
 autoClickBtn.MouseButton1Click:Connect(function()
 	autoClickEnabled = not autoClickEnabled
 	autoClickBtn.Text = "Auto Click: " .. (autoClickEnabled and "ON" or "OFF")
@@ -378,21 +396,12 @@ autoClickBtn.MouseButton1Click:Connect(function()
 	if autoClickEnabled then
 		clickThread = task.spawn(function()
 			local UIS = game:GetService("VirtualInputManager")
-			local playerGui = player:WaitForChild("PlayerGui")
-			local hud = playerGui:WaitForChild("HUD")
-			local frame = hud:WaitForChild("Frame")
-			local rightCenter = frame:WaitForChild("RightCenter")
-			local autoFight = rightCenter:WaitForChild("AutoFight")
-
 			while autoClickEnabled do
-				if autoFight and autoFight.Visible then
-					-- Klik tombol seolah manual
-					local posX = autoFight.AbsolutePosition.X + autoFight.AbsoluteSize.X/2
-					local posY = autoFight.AbsolutePosition.Y + autoFight.AbsoluteSize.Y/2
-					UIS:SendMouseButtonEvent(posX, posY, 0, true, game, 1) -- mouse down
-					UIS:SendMouseButtonEvent(posX, posY, 0, false, game, 1) -- mouse up
+				if clickPos then
+					UIS:SendMouseButtonEvent(clickPos.X, clickPos.Y, 0, true, game, 1) -- mouse down
+					UIS:SendMouseButtonEvent(clickPos.X, clickPos.Y, 0, false, game, 1) -- mouse up
 				end
-				task.wait(0.1) -- interval klik (bisa diubah)
+				task.wait(0.15)
 			end
 		end)
 	else
@@ -401,5 +410,3 @@ autoClickBtn.MouseButton1Click:Connect(function()
 		end
 	end
 end)
-
-
