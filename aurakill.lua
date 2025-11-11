@@ -75,7 +75,7 @@ local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Te
 end})
 GUI:CreateButton({
     parent = main, 
-    text = "Auto Select Attack", 
+    text = "Auto Attack World Enemy", 
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/auto%20Attack"))()
 end})
@@ -87,7 +87,13 @@ local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Te
 end})
 GUI:CreateButton({
     parent = main, 
-    text = "Auto Behind", 
+    text = "Auto Behind Enemy", 
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/Auto%20behind"))()
+end})
+GUI:CreateButton({
+    parent = main, 
+    text = "Auto Roll World Buff", 
+    callback = function()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/Auro%20Roll%20World%20Buff"))()
 end})
