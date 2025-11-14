@@ -191,6 +191,13 @@ local worldData = {
         "\000\000\001\001\000\018Lower Ghoul Palace",
         "\000\000\001\001\000\016Lower Oni Palace",
         "\000\000\001\001\000\nAka Palace"
+	},
+    ["16"] = {
+		"\000\000\001\001\000\020Lower Demon Fortress",
+		"\000\000\001\001\000\021Lower Wraith Fortress",
+		"\000\000\001\001\000\020Lower Ghoul Fortress",
+		"\000\000\001\001\000\018Lower Oni Fortress",
+		"\000\000\001\001\000\020Lower Ghoul Fortress"
     }
 }
 
@@ -269,7 +276,7 @@ rightBtn.TextColor3 = Color3.new(1, 1, 1)
 rightBtn.Font = Enum.Font.GothamBold
 rightBtn.TextSize = 14
 
-local MAX_WORLD = 15
+local MAX_WORLD = 16
 
 local function updateWorldDisplay()
     worldDisplay.Text = "World: " .. selectedWorld
