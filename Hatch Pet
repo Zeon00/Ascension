@@ -1,5 +1,4 @@
--- 🌟 Dual Remote Toggle GUI (with X Destroy)
--- Made for BridgeNet dataRemoteEvent
+-- 🌟 Quad Remote Toggle GUI (Hatch, Craft, UpgradeStrength, UpgradeHealth)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -8,14 +7,14 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 -- GUI Setup
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DualRemoteToggleGUI"
+ScreenGui.Name = "QuadRemoteToggleGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = playerGui
 
--- Main Frame
+-- Main Frame (dibesarkan untuk 4 tombol)
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 240, 0, 160)
-Frame.Position = UDim2.new(0.5, -120, 0.4, -80)
+Frame.Size = UDim2.new(0, 260, 0, 240)
+Frame.Position = UDim2.new(0.5, -130, 0.4, -120)
 Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Frame.BorderSizePixel = 0
 Frame.Active = true
@@ -31,7 +30,7 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -30, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 5)
 Title.BackgroundTransparency = 1
-Title.Text = "⚙️ Hatch Pet & Craft"
+Title.Text = "⚙️ Pet & Tower Auto"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
@@ -57,41 +56,84 @@ CloseBtn.MouseButton1Click:Connect(function()
 	ScreenGui:Destroy()
 end)
 
--- 🟢 Button 1: Fl... E39 Remote
-local Btn1 = Instance.new("TextButton")
-Btn1.Size = UDim2.new(0, 200, 0, 40)
-Btn1.Position = UDim2.new(0.5, -100, 0, 45)
-Btn1.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-Btn1.Text = "Hatch Pet"
-Btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
-Btn1.Font = Enum.Font.GothamBold
-Btn1.TextSize = 16
-Btn1.Parent = Frame
+-- Function helper untuk bikin tombol
+local function createBtn(posY, label)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0, 220, 0, 40)
+	btn.Position = UDim2.new(0.5, -110, 0, posY)
+	btn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+	btn.Text = label .. ": OFF"
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 16
+	btn.Parent = Frame
 
-local Btn1Corner = Instance.new("UICorner")
-Btn1Corner.CornerRadius = UDim.new(0, 8)
-Btn1Corner.Parent = Btn1
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = btn
 
--- 🟢 Button 2: CraftAll Remote
-local Btn2 = Instance.new("TextButton")
-Btn2.Size = UDim2.new(0, 200, 0, 40)
-Btn2.Position = UDim2.new(0.5, -100, 0, 95)
-Btn2.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-Btn2.Text = "Craft Pet"
-Btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
-Btn2.Font = Enum.Font.GothamBold
-Btn2.TextSize = 16
-Btn2.Parent = Frame
+	return btn
+end
+-- === MINIMIZE SYSTEM ===
 
-local Btn2Corner = Instance.new("UICorner")
-Btn2Corner.CornerRadius = UDim.new(0, 8)
-Btn2Corner.Parent = Btn2
+-- Tombol minimize
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 25, 0, 25)
+MinBtn.Position = UDim2.new(1, -60, 0, 5)
+MinBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+MinBtn.Text = "-"
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 18
+MinBtn.Parent = Frame
 
--- Logic
-local toggle1, toggle2 = false, false
-local loop1, loop2
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 5)
+MinCorner.Parent = MinBtn
 
--- 🔹 Toggle 1 Function
+-- ICON KETIKA MINIMIZE
+local Icon = Instance.new("TextButton")
+Icon.Size = UDim2.new(0, 45, 0, 45)
+Icon.Position = UDim2.new(0.5, -20, 0.75, 0)
+Icon.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Icon.Text = "⚔️"
+Icon.Visible = false
+Icon.Active = true
+Icon.Draggable = true
+Icon.TextSize = 28
+Icon.Font = Enum.Font.GothamBold
+Icon.TextColor3 = Color3.fromRGB(255, 255, 255)
+Icon.Parent = ScreenGui
+
+local IconCorner = Instance.new("UICorner")
+IconCorner.CornerRadius = UDim.new(1, 0)
+IconCorner.Parent = Icon
+
+-- MINIMIZE ACTION
+MinBtn.MouseButton1Click:Connect(function()
+	Frame.Visible = false
+	Icon.Visible = true
+end)
+
+-- MAXIMIZE ACTION
+Icon.MouseButton1Click:Connect(function()
+	Frame.Visible = true
+	Icon.Visible = false
+end)
+
+-- ==== 4 Buttons ====
+local Btn1 = createBtn(45,  "Hatch Pet")
+local Btn2 = createBtn(90,  "Craft Pet")
+local Btn3 = createBtn(135, "Upgrade STR")
+local Btn4 = createBtn(180, "Upgrade HP")
+
+-- Toggles
+local toggle1, toggle2, toggle3, toggle4 = false, false, false, false
+local loop1, loop2, loop3, loop4
+
+-- ==========================
+-- 🔹 TOGGLE 1 - HATCH PET
+-- ==========================
 Btn1.MouseButton1Click:Connect(function()
 	toggle1 = not toggle1
 	Btn1.Text = "Hatch Pet: " .. (toggle1 and "ON" or "OFF")
@@ -110,19 +152,18 @@ Btn1.MouseButton1Click:Connect(function()
 						"\004"
 					}
 				}
-				ReplicatedStorage:WaitForChild("BridgeNet"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+				ReplicatedStorage.BridgeNet.dataRemoteEvent:FireServer(unpack(args))
 				task.wait(0.1)
 			end
 		end)
 	else
-		if loop1 then
-			task.cancel(loop1)
-			loop1 = nil
-		end
+		if loop1 then task.cancel(loop1) end
 	end
 end)
 
--- 🔹 Toggle 2 Function
+-- ==========================
+-- 🔹 TOGGLE 2 - CRAFT PET
+-- ==========================
 Btn2.MouseButton1Click:Connect(function()
 	toggle2 = not toggle2
 	Btn2.Text = "Craft Pet: " .. (toggle2 and "ON" or "OFF")
@@ -133,20 +174,57 @@ Btn2.MouseButton1Click:Connect(function()
 			while toggle2 do
 				local args = {
 					{
-						{
-							"CraftAll"
-						},
+						{ "CraftAll" },
 						"\003"
 					}
 				}
-				ReplicatedStorage:WaitForChild("BridgeNet"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+				ReplicatedStorage.BridgeNet.dataRemoteEvent:FireServer(unpack(args))
 				task.wait(0.1)
 			end
 		end)
 	else
-		if loop2 then
-			task.cancel(loop2)
-			loop2 = nil
-		end
+		if loop2 then task.cancel(loop2) end
+	end
+end)
+
+-- ==========================
+-- 🔹 TOGGLE 3 - UpgradeStrength
+-- ==========================
+Btn3.MouseButton1Click:Connect(function()
+	toggle3 = not toggle3
+	Btn3.Text = "Upgrade STR: " .. (toggle3 and "ON" or "OFF")
+	Btn3.BackgroundColor3 = toggle3 and Color3.fromRGB(50, 200, 90) or Color3.fromRGB(200, 50, 50)
+
+	if toggle3 then
+		loop3 = task.spawn(function()
+			while toggle3 do
+				local args = { "UpgradeStrength" }
+				ReplicatedStorage.Remotes.Tower:FireServer(unpack(args))
+				task.wait(0.2)
+			end
+		end)
+	else
+		if loop3 then task.cancel(loop3) end
+	end
+end)
+
+-- ==========================
+-- 🔹 TOGGLE 4 - UpgradeHealth
+-- ==========================
+Btn4.MouseButton1Click:Connect(function()
+	toggle4 = not toggle4
+	Btn4.Text = "Upgrade HP: " .. (toggle4 and "ON" or "OFF")
+	Btn4.BackgroundColor3 = toggle4 and Color3.fromRGB(50, 200, 90) or Color3.fromRGB(200, 50, 50)
+
+	if toggle4 then
+		loop4 = task.spawn(function()
+			while toggle4 do
+				local args = { "UpgradeHealth" }
+				ReplicatedStorage.Remotes.Tower:FireServer(unpack(args))
+				task.wait(0.2)
+			end
+		end)
+	else
+		if loop4 then task.cancel(loop4) end
 	end
 end)
