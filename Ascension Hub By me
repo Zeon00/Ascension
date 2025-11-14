@@ -29,7 +29,12 @@ GUI:CreateSection({
     parent = main, 
     text = "Player"
 })
-
+GUI:CreateButton({
+    parent = main, 
+    text = "Auto Click", 
+    callback = function()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Auto%20Click"))()
+end})
 GUI:CreateButton({
     parent = main, 
     text = "Anti AFK", 
