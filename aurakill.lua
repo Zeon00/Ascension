@@ -73,11 +73,24 @@ GUI:CreateButton({
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/Auto%20Train"))()
 end})
+
 GUI:CreateButton({
     parent = main, 
-    text = "Auto Attack World Enemy", 
+    text = "Hatch Pet", 
     callback = function()
-local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/auto%20Attack"))()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Hatch%20Pet"))()
+end})
+
+local main = GUI:CreateTab("Battle", "swords") -- You can use IconID we didnt impleemnt lucid or any external icons
+GUI:CreateSection({
+    parent = main, 
+    text = "Support Battle"
+        })
+GUI:CreateButton({
+    parent = main, 
+    text = "Auto Roll World Buff", 
+    callback = function()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/Auro%20Roll%20World%20Buff"))()
 end})
 GUI:CreateButton({
     parent = main, 
@@ -93,19 +106,8 @@ local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Te
 end})
 GUI:CreateButton({
     parent = main, 
-    text = "Auto Roll World Buff", 
+    text = "Auto Attack World Enemy", 
     callback = function()
-local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/Auro%20Roll%20World%20Buff"))()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/auto%20Attack"))()
 end})
-GUI:CreateButton({
-    parent = main, 
-    text = "Hatch Pet", 
-    callback = function()
-local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Hatch%20Pet"))()
-end})
-
-
-
-
-
 
