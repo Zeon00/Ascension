@@ -275,7 +275,7 @@ heightToggle.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------------------
--- Teleport Dropdown (World1–16)
+-- Teleport Dropdown (World1–20)
 ---------------------------------------------------------------------
 local tpLabel = Instance.new("TextLabel")
 tpLabel.Size = UDim2.new(0.8, 0, 0, 25)
@@ -321,7 +321,7 @@ tpLayout.Padding = UDim.new(0, 2)
 tpLayout.Parent = tpList
 
 local Worlds = {}
-for i = 1, 16 do table.insert(Worlds, "World"..i) end
+for i = 1, 20 do table.insert(Worlds, "World"..i) end
 local tpOpen = false
 
 local function toggleTPDropdown()
