@@ -1,0 +1,189 @@
+-- 📌 FULL AUTOCLICK + RECORD (PC & ANDROID SUPPORT)
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local VIM = game:GetService("VirtualInputManager")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoClickGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = playerGui
+
+-- Main Frame
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 240, 0, 160)
+Frame.Position = UDim2.new(0.5, -120, 0.4, -80)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = Frame
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -35, 0, 28)
+Title.Position = UDim2.new(0, 10, 0, 5)
+Title.BackgroundTransparency = 1
+Title.Text = "⚙ Auto Clicker"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Frame
+
+-- Minimize Button
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 25, 0, 25)
+MinBtn.Position = UDim2.new(1, -30, 0, 5)
+MinBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 250)
+MinBtn.Text = "-"
+MinBtn.TextColor3 = Color3.new(1, 1, 1)
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 18
+MinBtn.Parent = Frame
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 5)
+MinCorner.Parent = MinBtn
+
+-- FIXED MINIMIZE ICON (SELALU MUNCUL)
+local Icon = Instance.new("TextButton")
+Icon.Visible = false
+Icon.Size = UDim2.new(0, 55, 0, 55)
+Icon.Position = UDim2.new(0, 20, 0.5, -30) -- selalu di kiri layar, aman
+Icon.BackgroundColor3 = Color3.fromRGB(60, 60, 200)
+Icon.Text = "⚙"
+Icon.TextColor3 = Color3.new(1, 1, 1)
+Icon.TextSize = 28
+Icon.Font = Enum.Font.GothamBold
+Icon.Parent = ScreenGui
+
+local IconCorner = Instance.new("UICorner")
+IconCorner.CornerRadius = UDim.new(1, 0)
+IconCorner.Parent = Icon
+
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(1, -60, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 14
+CloseBtn.Parent = Frame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 5)
+CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+
+-- Buttons
+local RecordBtn = Instance.new("TextButton")
+RecordBtn.Size = UDim2.new(0, 200, 0, 40)
+RecordBtn.Position = UDim2.new(0.5, -100, 0, 40)
+RecordBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 255)
+RecordBtn.Text = "🎯 Record Tap"
+RecordBtn.TextColor3 = Color3.new(1, 1, 1)
+RecordBtn.Font = Enum.Font.GothamBold
+RecordBtn.TextSize = 16
+RecordBtn.Parent = Frame
+
+local RCorner = Instance.new("UICorner")
+RCorner.CornerRadius = UDim.new(0, 8)
+RCorner.Parent = RecordBtn
+
+local AutoBtn = Instance.new("TextButton")
+AutoBtn.Size = UDim2.new(0, 200, 0, 40)
+AutoBtn.Position = UDim2.new(0.5, -100, 0, 90)
+AutoBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+AutoBtn.Text = "Auto Click: OFF"
+AutoBtn.TextColor3 = Color3.new(1, 1, 1)
+AutoBtn.Font = Enum.Font.GothamBold
+AutoBtn.TextSize = 16
+AutoBtn.Parent = Frame
+
+local ACorner = Instance.new("UICorner")
+ACorner.CornerRadius = UDim.new(0, 8)
+ACorner.Parent = AutoBtn
+
+-- Logic Vars
+local clickPos = nil
+local autoEnabled = false
+local autoThread = nil
+
+------------------------------------------------------
+-- 📌 RECORD TAP (PC + ANDROID)
+------------------------------------------------------
+RecordBtn.MouseButton1Click:Connect(function()
+	RecordBtn.Text = "Tap Now..."
+	print("📌 Tap/Click anywhere to record position")
+
+	local conn
+	conn = UIS.InputBegan:Connect(function(input, gp)
+		if gp then return end
+
+		if input.UserInputType == Enum.UserInputType.Touch 
+		or input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+			clickPos = Vector2.new(input.Position.X, input.Position.Y)
+			print("✅ RECORDED AT:", clickPos)
+
+			RecordBtn.Text = "🎯 Recorded!"
+			task.wait(0.5)
+			RecordBtn.Text = "🎯 Record Tap"
+
+			conn:Disconnect()
+		end
+	end)
+end)
+
+------------------------------------------------------
+-- 📌 AUTO CLICK LOOP
+------------------------------------------------------
+AutoBtn.MouseButton1Click:Connect(function()
+	autoEnabled = not autoEnabled
+	AutoBtn.Text = "Auto Click: " .. (autoEnabled and "ON" or "OFF")
+	AutoBtn.BackgroundColor3 = autoEnabled and Color3.fromRGB(50,200,90) or Color3.fromRGB(200,50,50)
+
+	if autoEnabled then
+		autoThread = task.spawn(function()
+			while autoEnabled do
+				if clickPos then
+					VIM:SendMouseButtonEvent(clickPos.X, clickPos.Y, 0, true, game, 1)
+					VIM:SendMouseButtonEvent(clickPos.X, clickPos.Y, 0, false, game, 1)
+				end
+				task.wait(0.08)
+			end
+		end)
+	else
+		if autoThread then
+			task.cancel(autoThread)
+			autoThread = nil
+		end
+	end
+end)
+
+------------------------------------------------------
+-- 📌 MINIMIZE
+------------------------------------------------------
+MinBtn.MouseButton1Click:Connect(function()
+	Frame.Visible = false
+	Icon.Visible = true
+end)
+
+Icon.MouseButton1Click:Connect(function()
+	Frame.Visible = true
+	Icon.Visible = false
+end)
