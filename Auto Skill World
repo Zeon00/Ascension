@@ -117,7 +117,7 @@ local WorldSkills = {
 		"\000\000\001\001\000\021Lower Wraith Fortress",
 		"\000\000\001\001\000\020Lower Ghoul Fortress",
 		"\000\000\001\001\000\018Lower Oni Fortress",
-		"\000\000\001\001\000\020Lower Ghoul Fortress"
+		"\000\000\001\001\000\017Ice Doma Fortress"
     },
 }
 local TOTAL_WORLD = 16
