@@ -205,7 +205,7 @@ end)
 ----------------------------------------------------------------
 local AttackBtn = makeButton("Auto Attack: OFF", 160, Color3.fromRGB(150,50,50))
 local attackRunning = false
-local selectedWorld = "1"
+local selectedWorld = "17"
 
 ----------------------------------------------------------------
 -- WORLD DATA (PUNYA KAMU — INI COPY PASTE DARI SCRIPT SEBELUMNYA)
