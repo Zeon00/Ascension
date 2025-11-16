@@ -151,36 +151,67 @@ local behindDistance = 4
 local function toggleAutoBehind(state)
 	if state then
 		if behindConnection then behindConnection:Disconnect() end
+		
 		behindConnection = RunService.Heartbeat:Connect(function()
 			local char = player.Character
-			if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-			local hrp = char.HumanoidRootPart
+			if not char then return end
+			
+			local hrp = char:FindFirstChild("HumanoidRootPart")
+			if not hrp then return end
 
-			local enemiesFolder = Workspace:FindFirstChild("Client") and Workspace.Client:FindFirstChild("Enemies")
+			-- Folder musuh
+			local enemiesFolder = Workspace:FindFirstChild("Client") 
+				and Workspace.Client:FindFirstChild("Enemies")
 			if not enemiesFolder then return end
 
-			local closestEnemy, closestDist
+			-- Cari musuh terdekat
+			local closest, closestDist
 			for _, enemy in ipairs(enemiesFolder:GetChildren()) do
-				local hrp2 = enemy:FindFirstChild("HumanoidRootPart")
+				local eHRP = enemy:FindFirstChild("HumanoidRootPart")
 				local hum = enemy:FindFirstChild("Humanoid")
-				if hrp2 and hum and hum.Health > 0 then
-					local dist = (hrp2.Position - hrp.Position).Magnitude
-					if not closestDist or dist < closestDist then
-						closestDist = dist
-						closestEnemy = enemy
+
+				if eHRP and hum and hum.Health > 0 then
+					local d = (eHRP.Position - hrp.Position).Magnitude
+					if not closestDist or d < closestDist then
+						closestDist = d
+						closest = enemy
 					end
 				end
 			end
 
-			if closestEnemy then
-				local eHRP = closestEnemy.HumanoidRootPart
-				local pos = eHRP.Position - (eHRP.CFrame.LookVector * behindDistance)
-				hrp.CFrame = CFrame.new(pos + Vector3.new(0,2,0), eHRP.Position)
+			-- Kalau tidak ada musuh valid → stop
+			if not closest then return end
+
+			local eHRP = closest:FindFirstChild("HumanoidRootPart")
+			local hum = closest:FindFirstChild("Humanoid")
+			if not eHRP or not hum or hum.Health <= 0 then return end
+
+			-- Hitung posisi belakang
+			local targetPos = eHRP.Position - (eHRP.CFrame.LookVector * behindDistance)
+
+			-- ANTI FALL: Cegah posisi di bawah tanah
+			local minY = (Workspace.FallenPartsDestroyHeight or -50) + 5
+			if targetPos.Y < minY then
+				targetPos = Vector3.new(targetPos.X, minY, targetPos.Z)
 			end
+
+			-- Posisi aman + sedikit naik
+			local safePos = targetPos + Vector3.new(0, 2, 0)
+
+			-- Cek NaN (kalau posisi enemy error)
+			if safePos.X ~= safePos.X or safePos.Y ~= safePos.Y or safePos.Z ~= safePos.Z then
+				return -- skip supaya tidak jatuh
+			end
+
+			-- Teleport aman
+			hrp.CFrame = CFrame.new(safePos, eHRP.Position)
 		end)
+
 	else
-		if behindConnection then behindConnection:Disconnect() end
-		behindConnection = nil
+		if behindConnection then
+			behindConnection:Disconnect()
+			behindConnection = nil
+		end
 	end
 end
 
@@ -190,6 +221,7 @@ BehindBtn.MouseButton1Click:Connect(function()
 	BehindBtn.BackgroundColor3 = behindEnabled and Color3.fromRGB(50,200,90) or Color3.fromRGB(200,50,50)
 	toggleAutoBehind(behindEnabled)
 end)
+
 
 ----------------------------------------------------------------
 -- BUTTON 3: END FIGHT (NO LOOP)
