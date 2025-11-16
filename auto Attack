@@ -222,6 +222,90 @@ BehindBtn.MouseButton1Click:Connect(function()
 	toggleAutoBehind(behindEnabled)
 end)
 
+----------------------------------------------------------------
+-- BUTTON: HYPER FAST WALK TO ENEMY
+----------------------------------------------------------------
+local hyperWalkEnabled = false
+local hyperConn
+local hyperBtn = makeButton("Hyper Walk: OFF", 260, Color3.fromRGB(255,80,40))
+
+local hyperSpeed = 95          -- speed hyper (ubah bebas)
+local accelForce = 45000       -- besar dorongan (jangan terlalu kecil)
+local smooth = 0.20            -- smoothing acceleration
+
+local function toggleHyperWalk(state)
+	if state then
+		if hyperConn then hyperConn:Disconnect() end
+		
+		hyperConn = RunService.Heartbeat:Connect(function(dt)
+			local char = player.Character
+			if not char then return end
+
+			local hrp = char:FindFirstChild("HumanoidRootPart")
+			local hum = char:FindFirstChild("Humanoid")
+			if not hrp or not hum then return end
+
+			-- cari folder musuh
+			local enemiesFolder = Workspace:FindFirstChild("Client")
+				and Workspace.Client:FindFirstChild("Enemies")
+			if not enemiesFolder then return end
+
+			-- cari musuh terdekat
+			local closest, closestDist
+			for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+				local eHRP = enemy:FindFirstChild("HumanoidRootPart")
+				local eh = enemy:FindFirstChild("Humanoid")
+				if eHRP and eh and eh.Health > 0 then
+					local d = (eHRP.Position - hrp.Position).Magnitude
+					if not closestDist or d < closestDist then
+						closestDist = d
+						closest = eHRP
+					end
+				end
+			end
+
+			if not closest then return end
+
+			-- arah ke musuh
+			local dir = (closest.Position - hrp.Position)
+			local dist = dir.Magnitude
+			if dist < 1 then return end
+			dir = dir.Unit
+
+			-- ANTI VOID
+			local minY = (Workspace.FallenPartsDestroyHeight or -60) + 8
+			if hrp.Position.Y < minY then
+				hrp.CFrame = CFrame.new(hrp.Position.X, minY, hrp.Position.Z)
+			end
+
+			-- HYPER FORCE (super cepat, stabil)
+			local bv = hrp:FindFirstChild("HyperForce") or Instance.new("BodyVelocity")
+			bv.Name = "HyperForce"
+			bv.MaxForce = Vector3.new(accelForce, 0, accelForce)
+			bv.Velocity = hrp.Velocity:Lerp(dir * hyperSpeed, smooth)
+			bv.Parent = hrp
+		end)
+
+	else
+		if hyperConn then hyperConn:Disconnect() hyperConn = nil end
+
+		-- hapus force biar player normal
+		local char = player.Character
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			local f = char.HumanoidRootPart:FindFirstChild("HyperForce")
+			if f then f:Destroy() end
+		end
+	end
+end
+
+hyperBtn.MouseButton1Click:Connect(function()
+	hyperWalkEnabled = not hyperWalkEnabled
+	hyperBtn.Text = "Hyper Walk: " .. (hyperWalkEnabled and "ON" or "OFF")
+	hyperBtn.BackgroundColor3 =
+		hyperWalkEnabled and Color3.fromRGB(255,140,40) or Color3.fromRGB(255,80,40)
+
+	toggleHyperWalk(hyperWalkEnabled)
+end)
 
 ----------------------------------------------------------------
 -- BUTTON 3: END FIGHT (NO LOOP)
