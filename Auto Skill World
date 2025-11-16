@@ -131,7 +131,7 @@ local WorldSkills = {
 		"\000\000\001\001\000\020Lower Demon Infinite",
     	"\000\000\001\001\000\020Lower Ghoul Infinite",
     	"\000\000\001\001\000\018Lower Oni Infinite"
-	}
+	},
 }
 local TOTAL_WORLD = 18
 
