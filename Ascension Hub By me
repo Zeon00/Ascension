@@ -31,6 +31,15 @@ GUI:CreateSection({
 })
 GUI:CreateButton({
     parent = main, 
+    text = "Auto Join Raid", 
+    callback = function()
+local args = {
+	"Join"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Raid"):FireServer(unpack(args))
+end})
+GUI:CreateButton({
+    parent = main, 
     text = "Auto Click", 
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Auto%20Click"))()
