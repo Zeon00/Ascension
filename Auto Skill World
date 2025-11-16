@@ -118,9 +118,22 @@ local WorldSkills = {
 		"\000\000\001\001\000\020Lower Ghoul Fortress",
 		"\000\000\001\001\000\018Lower Oni Fortress",
 		"\000\000\001\001\000\017Ice Doma Fortress"
-    },
+     },
+    ["17"] = {
+        "\000\000\001\001\000\022Lower Demon Stronghold",
+        "\000\000\001\001\000\023Lower Wraith Stronghold",
+        "\000\000\001\001\000\022Lower Ghoul Stronghold",
+        "\000\000\001\001\000\020Lower Oni Stronghold",
+        "\000\000\001\001\000\016Nakim Stronghold"
+	 },
+    ["18"] = {
+       "\000\000\001\001\000\021Lower Wraith Infinite",
+		"\000\000\001\001\000\020Lower Demon Infinite",
+    	"\000\000\001\001\000\020Lower Ghoul Infinite",
+    	"\000\000\001\001\000\018Lower Oni Infinite"
+	}
 }
-local TOTAL_WORLD = 16
+local TOTAL_WORLD = 18
 
 -- ========== Prevent duplicate GUI ==========
 if CoreGui:FindFirstChild("InfinitySkillGUI") then
