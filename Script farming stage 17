@@ -2,7 +2,7 @@ local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/BloodLett
 
 GUI:CreateMain({
     Name = "Ashlabs",
-    title = "Arm Wrestle Simulator",
+    title = "Ascension",
     ToggleUI = "K",
     WindowIcon = "home"
 })
@@ -23,29 +23,31 @@ while not player do task.wait() end
 
 -- Table untuk menyimpan state toggle
 local togglesState = {}
+local buttons = {}
 
 local function createToggleLoop(name, loopFunc)
-    togglesState[name] = false
-    GUI:CreateButton({
+    togglesState[name] = true -- default ON
+    buttons[name] = GUI:CreateButton({
         parent = main,
-        text = name .. " : OFF",
+        text = name .. " : ON",
         callback = function()
             togglesState[name] = not togglesState[name]
-            local btn = GUI:GetButton(name) -- asumsi Ash Lib punya get button by name
+            local btn = buttons[name]
             if btn then
                 btn.Text = name .. (togglesState[name] and " : ON" or " : OFF")
             end
-
-            if togglesState[name] then
-                task.spawn(function()
-                    while togglesState[name] do
-                        loopFunc()
-                        task.wait()
-                    end
-                end)
-            end
         end
     })
+
+    -- Jalankan loop di background
+    task.spawn(function()
+        while true do
+            if togglesState[name] then
+                loopFunc()
+            end
+            task.wait()
+        end
+    end)
 end
 
 ---------------------------------------------------------------------
@@ -107,7 +109,7 @@ local function autoRelogLoop()
 end
 
 ---------------------------------------------------------------------
--- BUAT SEMUA TOGGLE
+-- BUAT SEMUA TOGGLE DENGAN AUTO ON
 ---------------------------------------------------------------------
 createToggleLoop("Travel", travelLoop)
 createToggleLoop("Buffers", buffersLoop)
@@ -117,4 +119,4 @@ createToggleLoop("Anti AFK", antiAFKLoop)
 createToggleLoop("PT Loop", ptLoopLoop)
 createToggleLoop("Auto Relog", autoRelogLoop)
 
-print("✔ All toggles ready — ON/OFF version")
+print("✔ All toggles ready — Auto ON, can be toggled OFF anytime")
