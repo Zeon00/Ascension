@@ -116,6 +116,12 @@ local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Te
 end})
 GUI:CreateButton({
     parent = main, 
+    text = "Auto Attack Wave Immposible", 
+    callback = function()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/attack%20Wave%20Immposibble"))()
+end})
+GUI:CreateButton({
+    parent = main, 
     text = "Auto Attack World Enemy", 
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Test/refs/heads/main/auto%20Attack"))()
