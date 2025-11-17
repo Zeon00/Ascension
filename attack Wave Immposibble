@@ -1,0 +1,225 @@
+-- Modern Auto Buffer GUI (Final Layout Fix)
+-- ✕ di pojok kanan atas + Toggle pendek dan agak ke bawah
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- CONFIG
+local RAW_LIST = { 
+	"\000\000\001\001\000\0011",
+    "\000\000\001\001\000\0012",
+    "\000\000\001\001\000\0013",
+    "\000\000\001\001\000\0014",
+    "\000\000\001\001\000\0015",
+    "\000\000\001\001\000\0016",
+    "\000\000\001\001\000\0017",
+    "\000\000\001\001\000\0018",
+	  "\000\000\001\001\000\0011",
+    "\000\000\001\001\000\0012",
+    "\000\000\001\001\000\0013",
+    "\000\000\001\001\000\0014",
+    "\000\000\001\001\000\0015",
+    "\000\000\001\001\000\0016",
+    "\000\000\001\001\000\0017",
+    "\000\000\001\001\000\0018"
+	}
+local NUM_ARGS = 8
+local SEND_INTERVAL = 0
+
+-- Find RemoteEvent
+local function findRemoteEvent()
+	local ok, modules = pcall(function() return ReplicatedStorage:WaitForChild("Modules", 2) end)
+	if not ok or not modules then return nil end
+	local ok2, network1 = pcall(function() return modules:WaitForChild("Network", 2) end)
+	if not ok2 or not network1 then return nil end
+	local ok3, network2 = pcall(function() return network1:WaitForChild("Network", 2) end)
+	if not ok3 or not network2 then return nil end
+	local ok4, remote = pcall(function() return network2:WaitForChild("RemoteEvent", 2) end)
+	if not ok4 or not remote then return nil end
+	return remote
+end
+
+local RemoteEvent = findRemoteEvent()
+if not RemoteEvent then warn("[AutoSendBuffers] RemoteEvent not found!") end
+
+-- Buffer utils
+local function hasBuffer()
+	return typeof(buffer) == "table" and type(buffer.fromstring) == "function"
+end
+
+local function makeBuffer(raw)
+	local ok, res = pcall(function() return buffer.fromstring(raw) end)
+	return ok and res or nil
+end
+
+local function buildArgs(raw)
+	local args = {}
+	for i = 1, NUM_ARGS do
+		local buf = makeBuffer(raw)
+		if not buf then return nil end
+		table.insert(args, buf)
+	end
+	return args
+end
+
+-- Toggle logic
+local sending = false
+local thread
+
+local function sendBuffersParallel()
+	if not (RemoteEvent and hasBuffer()) then return end
+	for _, raw in ipairs(RAW_LIST) do
+		if not sending then break end
+		task.spawn(function()
+			if not sending then return end
+			local args = buildArgs(raw)
+			if args then
+				pcall(function()
+					if sending then
+						RemoteEvent:FireServer(unpack(args))
+					end
+				end)
+			end
+		end)
+	end
+end
+
+local function startSending()
+	if sending then return end
+	sending = true
+	thread = task.spawn(function()
+		while sending do
+			sendBuffersParallel()
+			task.wait(SEND_INTERVAL)
+		end
+	end)
+end
+
+local function stopSending()
+	sending = false
+end
+
+local function toggle()
+	if sending then stopSending() else startSending() end
+end
+
+-- Keybind
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.T then
+		toggle()
+	end
+end)
+
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoSendBuffers_Modern"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 260, 0, 90)
+mainFrame.Position = UDim2.new(1, -280, 1, -130)
+mainFrame.AnchorPoint = Vector2.new(1, 1)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.BorderSizePixel = 0
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ZIndex = 5
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner", mainFrame)
+corner.CornerRadius = UDim.new(0, 10)
+
+local shadow = Instance.new("ImageLabel")
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+shadow.Size = UDim2.new(1, 20, 1, 20)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 0.6
+shadow.ZIndex = 0
+shadow.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -50, 0, 28)
+title.Position = UDim2.new(0, 10, 0, 6)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.Text = "Auto Buffers"
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.ZIndex = 20
+title.Parent = mainFrame
+
+-- FIXED X BUTTON
+local closeBtn = Instance.new("TextButton")
+closeBtn.AnchorPoint = Vector2.new(1, 0)
+closeBtn.Position = UDim2.new(1, -8, 0, 6)
+closeBtn.Size = UDim2.new(0, 24, 0, 24)
+closeBtn.BackgroundTransparency = 1
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 20
+closeBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+closeBtn.ZIndex = 50
+closeBtn.Parent = mainFrame
+
+closeBtn.MouseEnter:Connect(function()
+	closeBtn.TextColor3 = Color3.fromRGB(255, 120, 120)
+end)
+closeBtn.MouseLeave:Connect(function()
+	closeBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+end)
+closeBtn.MouseButton1Click:Connect(function()
+	stopSending()
+	screenGui:Destroy()
+end)
+
+-- SHORT TOGGLE BUTTON
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 160, 0, 28)
+toggleBtn.Position = UDim2.new(0.5, 0, 1, -20)
+toggleBtn.AnchorPoint = Vector2.new(0.5, 1)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 16
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+toggleBtn.Text = "OFF"
+toggleBtn.ZIndex = 20
+toggleBtn.Parent = mainFrame
+
+local btnCorner = Instance.new("UICorner", toggleBtn)
+btnCorner.CornerRadius = UDim.new(0, 8)
+
+toggleBtn.MouseEnter:Connect(function()
+	toggleBtn.BackgroundTransparency = 0.1
+end)
+toggleBtn.MouseLeave:Connect(function()
+	toggleBtn.BackgroundTransparency = 0
+end)
+toggleBtn.MouseButton1Click:Connect(toggle)
+
+task.spawn(function()
+	while screenGui.Parent do
+		if sending then
+			toggleBtn.Text = "ON"
+			toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 80)
+		else
+			toggleBtn.Text = "OFF"
+			toggleBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+		end
+		task.wait(0.05)
+	end
+end)
+
+print("[AutoSendBuffers] Modern GUI Loaded — press T or click ✕ to close")
