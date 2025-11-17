@@ -1,0 +1,168 @@
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/BloodLetters/Ash-Libs/refs/heads/main/source.lua"))()
+
+GUI:CreateMain({
+    Name = "Ashlabs",
+    title = "Ascension Farming",
+    ToggleUI = "K",
+    WindowIcon = "home"
+})
+
+local main = GUI:CreateTab("Main", "user-round")
+GUI:CreateSection({ parent = main, text = "Player" })
+
+---------------------------------------------------------------------
+-- SERVICES
+---------------------------------------------------------------------
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
+local VirtualUser = game:GetService("VirtualUser")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local RemoteEvent = ReplicatedStorage.Modules.Network.Network:WaitForChild("RemoteEvent")
+local NUM_ARGS = 8
+
+local RAW_LIST = {
+	"\000\000\001\001\000\0011",
+    "\000\000\001\001\000\0012",
+    "\000\000\001\001\000\0013",
+    "\000\000\001\001\000\0014",
+    "\000\000\001\001\000\0015",
+    "\000\000\001\001\000\0016",
+    "\000\000\001\001\000\0017",
+    "\000\000\001\001\000\0018"
+}
+
+local function makeBuffer(raw)
+    local ok, res = pcall(function() return buffer.fromstring(raw) end)
+    return ok and res or nil
+end
+
+local function buildArgs(raw)
+    local args = {}
+    for i = 1, NUM_ARGS do
+        table.insert(args, makeBuffer(raw))
+    end
+    return args
+end
+
+---------------------------------------------------------------------
+-- FUNCTIONS
+---------------------------------------------------------------------
+
+-- Buffers loop
+local function buffersLoop()
+    for _, raw in ipairs(RAW_LIST) do
+        RemoteEvent:FireServer(unpack(buildArgs(raw)))
+    end
+end
+
+-- NEW: Start Impossible loop
+local function startImpossibleLoop()
+    ReplicatedStorage.Remotes.Combat:FireServer("StartImpossible")
+end
+
+-- Auto Training loop
+local function hyperRAWLoop()
+    local args = { buffer.fromstring("\000\003VIP") }
+    RemoteEvent:FireServer(unpack(args))
+end
+
+-- Anti AFK 1x
+local function antiAFK()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new())
+end
+
+-- PT Loop 1x after 1 hour
+local function ptLoop()
+    for i = 1, 10 do
+        if i ~= 3 then
+            local args = { { { "PT", tostring(i) }, "\006" } }
+            ReplicatedStorage.BridgeNet.dataRemoteEvent:FireServer(unpack(args))
+        end
+    end
+end
+
+-- Auto Relog after 1 hour 5 mins
+local function autoRelog()
+    TeleportService:Teleport(126991914853936, player)
+end
+
+---------------------------------------------------------------------
+-- CREATE BUTTONS (AUTO ON)
+---------------------------------------------------------------------
+local function createToggle(name, callback, autoOn)
+    local btn = nil
+
+    btn = GUI:CreateButton({
+        parent = main,
+        text = name .. (autoOn and " : ON" or " : OFF"),
+        callback = function()
+            if btn.Text:find("ON") then
+                btn.Text = name .. " : OFF"
+            else
+                btn.Text = name .. " : ON"
+                callback()
+            end
+        end
+    })
+
+    if autoOn then callback() end
+end
+
+---------------------------------------------------------------------
+-- FINAL TOGGLES
+---------------------------------------------------------------------
+
+-- Buffers ON
+createToggle("Buffers", function()
+    task.spawn(function()
+        while true do
+            buffersLoop()
+            task.wait()
+        end
+    end)
+end, true)
+
+-- NEW: Start Impossible (replace Start Fight)
+createToggle("Start Impossible", function()
+    task.spawn(function()
+        while true do
+            startImpossibleLoop()
+            task.wait(0.15)
+        end
+    end)
+end, true)
+
+-- Auto Training
+createToggle("Auto Training", function()
+    task.spawn(function()
+        while true do
+            hyperRAWLoop()
+            task.wait()
+        end
+    end)
+end, true)
+
+-- Anti AFK
+createToggle("Anti AFK", antiAFK, true)
+
+-- PT Loop in 1 hour
+createToggle("PT Loop", function()
+    task.spawn(function()
+        task.wait(3600)
+        ptLoop()
+    end)
+end, true)
+
+-- Relog after 1h 5m
+createToggle("Auto Relog", function()
+    task.spawn(function()
+        task.wait(3900)
+        autoRelog()
+    end)
+end, true)
+
+print("✔ Script Loaded without Auto Behind, with Start Impossible active")
