@@ -164,5 +164,61 @@ createToggle("Auto Relog", function()
         autoRelog()
     end)
 end, true)
+---------------------------------------------------------------------
+-- AUTO CLICK TANPA TEKAN - DI SEBELAH TOMBOL X ASHLABS
+---------------------------------------------------------------------
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Cari GUI Ashlabs
+local screenGui = playerGui:WaitForChild("Ashlabs")  
+
+-- Cari tombol X otomatis
+local closeBtn = nil
+for _, obj in pairs(screenGui:GetDescendants()) do
+    if obj:IsA("TextButton") and (obj.Text == "X" or obj.Name:lower():find("close")) then
+        closeBtn = obj
+        break
+    end
+end
+
+if not closeBtn then
+    warn("Tombol X GUI Ashlabs tidak ditemukan!")
+    return
+end
+
+-- FRAME AREA AUTO CLICK (TRANSPARAN)
+local area = Instance.new("Frame")
+area.Size = UDim2.new(0, 60, 0, closeBtn.AbsoluteSize.Y) -- 60px area klik
+area.BackgroundTransparency = 1
+area.Parent = screenGui
+
+-- Set posisi di SEBELAH KIRI tombol X
+task.defer(function()
+    area.Position = UDim2.new(
+        0, closeBtn.AbsolutePosition.X - 65,
+        0, closeBtn.AbsolutePosition.Y
+    )
+end)
+
+-- Ambil posisi auto-click (tengah area)
+local function getClickPos()
+    local x = area.AbsolutePosition.X + (area.AbsoluteSize.X / 2)
+    local y = area.AbsolutePosition.Y + (area.AbsoluteSize.Y / 2)
+    return x, y
+end
+
+-- AUTO CLICK LOOP (selalu ON)
+task.spawn(function()
+    while true do
+        local x, y = getClickPos()
+        VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 1)
+        VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 1)
+        task.wait(0.05)
+    end
+end)
 
 print("✔ Script Loaded without Auto Behind, with Start Impossible active")
