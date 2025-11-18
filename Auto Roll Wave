@@ -1,5 +1,5 @@
 --=====================================================
--- BEAUTIFUL MODERN GUI
+-- BEAUTIFUL MODERN GUI (FINAL COMPLETE VERSION)
 --=====================================================
 
 local Players = game:GetService("Players")
@@ -20,15 +20,13 @@ ScreenGui.ResetOnSpawn = false
 
 -- Main frame
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 230, 0, 300)
-Frame.Position = UDim2.new(0.5, -115, 0.45, -150)
+Frame.Size = UDim2.new(0, 230, 0, 260)
+Frame.Position = UDim2.new(0.5, -115, 0.45, -130)
 Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Frame.BorderSizePixel = 0
 Frame.Parent = ScreenGui
 
--- Rounded corners
-local UICorner = Instance.new("UICorner", Frame)
-UICorner.CornerRadius = UDim.new(0, 12)
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
 
 -- Shadow effect
 local Shadow = Instance.new("ImageLabel", Frame)
@@ -47,18 +45,17 @@ TitleBar.Size = UDim2.new(1, 0, 0, 38)
 TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0,12)
 
--- Title text
 local Title = Instance.new("TextLabel", TitleBar)
 Title.Size = UDim2.new(1, -70, 1, 0)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "⚡ Auto Roll"
+Title.Text = "⚡ Roll Custom"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 18
 Title.TextColor3 = Color3.fromRGB(200,200,200)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Destroy button (X)
+-- Destroy button
 local DestroyBtn = Instance.new("TextButton", TitleBar)
 DestroyBtn.Size = UDim2.new(0, 30, 0, 28)
 DestroyBtn.Position = UDim2.new(1, -35, 0, 5)
@@ -72,38 +69,12 @@ DestroyBtn.MouseButton1Click:Connect(function()
 	ScreenGui:Destroy()
 end)
 
--- Minimize (-)
-local MinBtn = Instance.new("TextButton", TitleBar)
-MinBtn.Size = UDim2.new(0, 30, 0, 28)
-MinBtn.Position = UDim2.new(1, -70, 0, 5)
-MinBtn.Text = "-"
-MinBtn.Font = Enum.Font.GothamBold
-MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
-Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0,6)
+---------------------------------------------------------
+-- DRAGGABLE WINDOW
+---------------------------------------------------------
+local dragging = false
+local dragStart, startPos
 
-local minimized = false
-local originalSize = Frame.Size
-
-MinBtn.MouseButton1Click:Connect(function()
-	minimized = not minimized
-	if minimized then
-		Frame.Size = UDim2.new(0, 230, 0, 40)
-		for _,obj in pairs(Frame:GetChildren()) do
-			if obj ~= TitleBar and obj:IsA("GuiObject") then
-				obj.Visible = false
-			end
-		end
-	else
-		Frame.Size = originalSize
-		for _,obj in pairs(Frame:GetChildren()) do
-			obj.Visible = true
-		end
-	end
-end)
-
--- DRAG
-local dragging, dragStart, startPos
 TitleBar.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = true
@@ -111,53 +82,117 @@ TitleBar.InputBegan:Connect(function(input)
 		startPos = Frame.Position
 	end
 end)
+
 TitleBar.InputChanged:Connect(function(input)
 	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
 		local delta = input.Position - dragStart
 		Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
 end)
+
 TitleBar.InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = false
 	end
 end)
 
--- Roll options
+---------------------------------------------------------
+-- SWITCH LEFT / RIGHT (PILIH ROLL)
+---------------------------------------------------------
 local rolls = {"Strength", "Damage", "Coins", "CritDamage", "CritChance", "Health"}
-local y = 50
+local index = 1
 
-for _, roll in ipairs(rolls) do
+local BtnLeft = Instance.new("TextButton", Frame)
+BtnLeft.Size = UDim2.new(0, 30, 0, 30)
+BtnLeft.Position = UDim2.new(0, 5, 0, 60)
+BtnLeft.Text = "<"
+BtnLeft.Font = Enum.Font.GothamBold
+BtnLeft.TextSize = 22
+BtnLeft.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", BtnLeft).CornerRadius = UDim.new(0,6)
 
-	local Btn = Instance.new("TextButton", Frame)
-	Btn.Size = UDim2.new(0, 200, 0, 32)
-	Btn.Position = UDim2.new(0, 15, 0, y)
-	Btn.Text = roll
-	Btn.BackgroundColor3 = Color3.fromRGB(90, 20, 20)
-	Btn.TextColor3 = Color3.new(1,1,1)
-	Btn.Font = Enum.Font.GothamBold
-	Btn.TextSize = 15
-	Instance.new("UICorner", Btn).CornerRadius = UDim.new(0,8)
+local BtnRight = Instance.new("TextButton", Frame)
+BtnRight.Size = UDim2.new(0, 30, 0, 30)
+BtnRight.Position = UDim2.new(0, 195, 0, 60)
+BtnRight.Text = ">"
+BtnRight.Font = Enum.Font.GothamBold
+BtnRight.TextSize = 22
+BtnRight.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner", BtnRight).CornerRadius = UDim.new(0,6)
 
-	local active = false
+local Selected = Instance.new("TextLabel", Frame)
+Selected.Size = UDim2.new(0, 150, 0, 30)
+Selected.Position = UDim2.new(0, 40, 0, 60)
+Selected.BackgroundTransparency = 1
+Selected.Text = rolls[index]
+Selected.Font = Enum.Font.GothamBold
+Selected.TextSize = 18
+Selected.TextColor3 = Color3.fromRGB(220,220,220)
 
-	Btn.MouseButton1Click:Connect(function()
-		active = not active
+BtnLeft.MouseButton1Click:Connect(function()
+	index -= 1
+	if index < 1 then index = #rolls end
+	Selected.Text = rolls[index]
+end)
 
-		if active then
-			Btn.BackgroundColor3 = Color3.fromRGB(30, 150, 80)
+BtnRight.MouseButton1Click:Connect(function()
+	index += 1
+	if index > #rolls then index = 1 end
+	Selected.Text = rolls[index]
+end)
 
-			task.spawn(function()
-				while active do
-					ReplicatedStorage.Remotes.Wave:FireServer("Roll", roll)
-					task.wait(0.1)
-				end
-			end)
+---------------------------------------------------------
+-- INPUT JUMLAH ROLL
+---------------------------------------------------------
+local AmountBox = Instance.new("TextBox", Frame)
+AmountBox.Size = UDim2.new(0, 200, 0, 32)
+AmountBox.Position = UDim2.new(0, 15, 0, 110)
+AmountBox.PlaceholderText = "Jumlah Roll (ex: 100)"
+AmountBox.Text = "100"
+AmountBox.Font = Enum.Font.GothamBold
+AmountBox.TextSize = 16
+AmountBox.TextColor3 = Color3.fromRGB(255,255,255)
+AmountBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Instance.new("UICorner", AmountBox).CornerRadius = UDim.new(0,8)
 
-		else
-			Btn.BackgroundColor3 = Color3.fromRGB(90, 20, 20)
+---------------------------------------------------------
+-- TOMBOL ROLL
+---------------------------------------------------------
+local RollBtn = Instance.new("TextButton", Frame)
+RollBtn.Size = UDim2.new(0, 200, 0, 32)
+RollBtn.Position = UDim2.new(0, 15, 0, 150)
+RollBtn.Text = "ROLL"
+RollBtn.Font = Enum.Font.GothamBold
+RollBtn.TextSize = 18
+RollBtn.BackgroundColor3 = Color3.fromRGB(40,120,200)
+RollBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", RollBtn).CornerRadius = UDim.new(0,8)
+
+local rolling = false
+
+RollBtn.MouseButton1Click:Connect(function()
+	if rolling then return end
+
+	local amount = tonumber(AmountBox.Text)
+	if not amount or amount <= 0 then
+		amount = 100
+		AmountBox.Text = "100"
+	end
+
+	rolling = true
+	RollBtn.Text = "Processing..."
+	RollBtn.BackgroundColor3 = Color3.fromRGB(200,160,40)
+
+	local stat = rolls[index]
+
+	task.spawn(function()
+		for i = 1, amount do
+			ReplicatedStorage.Remotes.Wave:FireServer("Roll", stat)
+			task.wait(0.05)
 		end
-	end)
 
-	y += 38
-end
+		RollBtn.Text = "ROLL"
+		RollBtn.BackgroundColor3 = Color3.fromRGB(40,120,200)
+		rolling = false
+	end)
+end)
