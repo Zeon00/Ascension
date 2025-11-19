@@ -81,7 +81,7 @@ UIListLayout.Parent = DropFrame
 local selectedWorld = nil
 
 -- Buat daftar World 1 - 17
-for i = 1, 17 do
+for i = 1, 19 do
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, 0, 0, 25)
 	btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
