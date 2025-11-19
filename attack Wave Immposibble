@@ -112,7 +112,7 @@ screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 260, 0, 130)
+mainFrame.Size = UDim2.new(0, 260, 0, 170)
 mainFrame.Position = UDim2.new(1, -280, 1, -160)
 mainFrame.AnchorPoint = Vector2.new(1, 1)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -163,6 +163,50 @@ closeBtn.Parent = mainFrame
 closeBtn.MouseButton1Click:Connect(function()
 	stopSending()
 	screenGui:Destroy()
+end)
+-- MINIMIZE ICON
+local minimized = false
+
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 28, 0, 28)
+minBtn.Position = UDim2.new(1, -40, 0, 6)
+minBtn.AnchorPoint = Vector2.new(1, 0)
+minBtn.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+minBtn.Text = "-"
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextSize = 20
+minBtn.TextColor3 = Color3.fromRGB(50, 50, 50)
+minBtn.ZIndex = 50
+minBtn.Visible = true
+minBtn.Parent = mainFrame
+
+local minIcon = Instance.new("TextButton")
+minIcon.Size = UDim2.new(0, 40, 0, 40)
+minIcon.Position = UDim2.new(1, -50, 1, -50)
+minIcon.AnchorPoint = Vector2.new(1, 1)
+minIcon.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+minIcon.Text = "AB"
+minIcon.Font = Enum.Font.GothamBold
+minIcon.TextSize = 18
+minIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+minIcon.ZIndex = 100
+minIcon.Visible = false
+minIcon.Parent = screenGui
+
+local iconCorner = Instance.new("UICorner", minIcon)
+iconCorner.CornerRadius = UDim.new(0, 10)
+
+-- MINIMIZE / RESTORE LOGIC
+minBtn.MouseButton1Click:Connect(function()
+	minimized = true
+	mainFrame.Visible = false
+	minIcon.Visible = true
+end)
+
+minIcon.MouseButton1Click:Connect(function()
+	minimized = false
+	mainFrame.Visible = true
+	minIcon.Visible = false
 end)
 
 -- MAIN TOGGLE (Auto Buffer)
@@ -235,6 +279,30 @@ task.spawn(function()
 
 		task.wait(0.1)
 	end
+end)
+-- THIRD BUTTON (Enter Lobby - no loop)
+local lobbyBtn = Instance.new("TextButton")
+lobbyBtn.Size = UDim2.new(0, 160, 0, 28)
+lobbyBtn.Position = UDim2.new(0.5, 0, 0, 130)
+lobbyBtn.AnchorPoint = Vector2.new(0.5, 0)
+lobbyBtn.Font = Enum.Font.GothamBold
+lobbyBtn.TextSize = 15
+lobbyBtn.TextColor3 = Color3.new(1,1,1)
+lobbyBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 200)
+lobbyBtn.Text = "Enter Lobby"
+lobbyBtn.Parent = mainFrame
+
+local lobbyCorner = Instance.new("UICorner", lobbyBtn)
+lobbyCorner.CornerRadius = UDim.new(0, 8)
+
+lobbyBtn.MouseButton1Click:Connect(function()
+    local args = { "EnterLobby" }
+    
+    pcall(function()
+        ReplicatedStorage:WaitForChild("Remotes")
+        :WaitForChild("Wave")
+        :FireServer(unpack(args))
+    end)
 end)
 
 print("[AutoSendBuffers] Full GUI Loaded Successfully")
