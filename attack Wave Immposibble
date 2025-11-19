@@ -304,5 +304,61 @@ lobbyBtn.MouseButton1Click:Connect(function()
         :FireServer(unpack(args))
     end)
 end)
+local buyStrength = false
+
+-- BUTTON BUY STRENGTH (10x)
+local buyBtn = Instance.new("TextButton")
+buyBtn.Size = UDim2.new(0, 160, 0, 28)
+buyBtn.Position = UDim2.new(0.5, 0, 0, 170)   -- ditempatkan di bawah tombol Enter Lobby
+buyBtn.AnchorPoint = Vector2.new(0.5, 0)
+buyBtn.Font = Enum.Font.GothamBold
+buyBtn.TextSize = 15
+buyBtn.TextColor3 = Color3.new(1,1,1)
+buyBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+buyBtn.Text = "Buy Strength x10: OFF"
+buyBtn.Parent = mainFrame
+
+local buyCorner = Instance.new("UICorner", buyBtn)
+buyCorner.CornerRadius = UDim.new(0, 8)
+
+buyBtn.MouseButton1Click:Connect(function()
+	buyStrength = not buyStrength
+end)
+
+-- LOOP UPDATE + BUY
+task.spawn(function()
+	while screenGui.Parent do
+		
+		-- UPDATE UI
+		if buyStrength then
+			buyBtn.Text = "Buy Strength x10: ON"
+			buyBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 80)
+
+			-- EXECUTE 10x BUY
+			for i = 1, 10 do
+				if not buyStrength then break end  -- stop jika toggle dimatikan
+				local args = {
+					"Buy",
+					"Strength"
+				}
+				pcall(function()
+					ReplicatedStorage:WaitForChild("Remotes")
+					:WaitForChild("Wave")
+					:FireServer(unpack(args))
+				end)
+				task.wait(0.1)
+			end
+
+			-- setelah 10x selesai, auto OFF
+			buyStrength = false
+
+		else
+			buyBtn.Text = "Buy Strength x10: OFF"
+			buyBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+		end
+
+		task.wait(0.1)
+	end
+end)
 
 print("[AutoSendBuffers] Full GUI Loaded Successfully")
