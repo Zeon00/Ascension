@@ -150,13 +150,13 @@ title.Parent = mainFrame
 -- CLOSE BUTTON
 local closeBtn = Instance.new("TextButton")
 closeBtn.AnchorPoint = Vector2.new(1, 0)
-closeBtn.Position = UDim2.new(1, -8, 0, 6)
+closeBtn.Position = UDim2.new(1, -8, 0, 5)
 closeBtn.Size = UDim2.new(0, 24, 0, 24)
-closeBtn.BackgroundTransparency = 1
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 closeBtn.Text = "X"
 closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 20
-closeBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+closeBtn.TextSize = 18
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
 closeBtn.ZIndex = 50
 closeBtn.Parent = mainFrame
 
@@ -168,14 +168,14 @@ end)
 local minimized = false
 
 local minBtn = Instance.new("TextButton")
-minBtn.Size = UDim2.new(0, 28, 0, 28)
-minBtn.Position = UDim2.new(1, -40, 0, 6)
+minBtn.Size = UDim2.new(0, 25, 0, 25)
+minBtn.Position = UDim2.new(1, -35, 0, 5)
 minBtn.AnchorPoint = Vector2.new(1, 0)
-minBtn.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+minBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 250)
 minBtn.Text = "-"
 minBtn.Font = Enum.Font.GothamBold
-minBtn.TextSize = 20
-minBtn.TextColor3 = Color3.fromRGB(50, 50, 50)
+minBtn.TextSize = 18
+minBtn.TextColor3 = Color3.new(1, 1, 1)
 minBtn.ZIndex = 50
 minBtn.Visible = true
 minBtn.Parent = mainFrame
