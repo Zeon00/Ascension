@@ -165,3 +165,9 @@ GUI:CreateButton({
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Roll%20Mark"))()
 end})
+GUI:CreateButton({
+    parent = main, 
+    text = "Auto Upgrade Stat Final", 
+    callback = function()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Upgrade%20Stat%20final"))()
+end})
