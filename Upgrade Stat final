@@ -1,0 +1,223 @@
+--=====================================================
+-- MODERN GUI WITH 7 TOGGLES + MINIMIZE + DESTROY
+--=====================================================
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("ReplicatedStorage")
+
+-- MAIN GUI
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "Final Upgrade"
+gui.ResetOnSpawn = false
+
+-- MAIN FRAME
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 260, 0, 320)
+main.Position = UDim2.new(0.5, -130, 0.5, -160)
+main.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+main.BorderSizePixel = 0
+
+-- DRAG
+local dragging, dragInput, dragStart, startPos
+
+main.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+main.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+-- HEADER BAR
+local header = Instance.new("Frame", main)
+header.Size = UDim2.new(1, 0, 0, 32)
+header.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+
+local title = Instance.new("TextLabel", header)
+title.Size = UDim2.new(1, -60, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Final Upgrade"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextSize = 16
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- MINIMIZE BUTTON
+local mini = Instance.new("TextButton", header)
+mini.Size = UDim2.new(0, 25, 0, 25)
+mini.Position = UDim2.new(1, -55, 0, 3)
+mini.BackgroundColor3 = Color3.fromRGB(70,70,80)
+mini.Text = "-"
+mini.TextColor3 = Color3.fromRGB(255,255,255)
+mini.TextSize = 20
+
+-- DESTROY BUTTON
+local close = Instance.new("TextButton", header)
+close.Size = UDim2.new(0, 25, 0, 25)
+close.Position = UDim2.new(1, -28, 0, 3)
+close.BackgroundColor3 = Color3.fromRGB(150,50,60)
+close.Text = "X"
+close.TextColor3 = Color3.fromRGB(255,255,255)
+close.TextSize = 18
+
+close.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+local minimized = false
+mini.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	for _, v in pairs(main:GetChildren()) do
+		if v ~= header then v.Visible = not minimized end
+	end
+end)
+
+-- CREATE TOGGLE FUNCTION
+local function makeToggle(name, yPos, callback)
+	local frame = Instance.new("Frame", main)
+	frame.Size = UDim2.new(1, -20, 0, 35)
+	frame.Position = UDim2.new(0, 10, 0, yPos)
+	frame.BackgroundColor3 = Color3.fromRGB(40,40,50)
+
+	local label = Instance.new("TextLabel", frame)
+	label.Size = UDim2.new(0.7, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = name
+	label.TextColor3 = Color3.fromRGB(255,255,255)
+	label.TextSize = 15
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Position = UDim2.new(0, 10, 0, 0)
+
+	local toggle = Instance.new("TextButton", frame)
+	toggle.Size = UDim2.new(0.25, 0, 0.7, 0)
+	toggle.Position = UDim2.new(0.72, 0, 0.15, 0)
+	toggle.BackgroundColor3 = Color3.fromRGB(120, 40, 40)
+	toggle.Text = "OFF"
+	toggle.TextColor3 = Color3.fromRGB(255,255,255)
+	toggle.TextSize = 14
+
+	local state = false
+
+	toggle.MouseButton1Click:Connect(function()
+		state = not state
+		toggle.Text = state and "ON" or "OFF"
+		toggle.BackgroundColor3 = state and Color3.fromRGB(50,150,50) or Color3.fromRGB(120,40,40)
+		callback(state)
+	end)
+end
+
+-------------------------------------------------------
+-- === ALL TOGGLES (7 TOTAL) ===
+-------------------------------------------------------
+
+-- TOGGLE 1 - MergeAll
+makeToggle("Merge All", 40, function(on)
+	if on then
+		spawn(function()
+			while on do
+				local args = { "MergeAll" }
+				RS.Remotes.FinalSelection:FireServer(unpack(args))
+				wait(0.01)
+			end
+		end)
+	end
+end)
+
+-- TOGGLE 2 - Strength
+makeToggle("Upgrade Strength", 80, function(on)
+	if on then
+		spawn(function()
+			while on do
+				local args = { "Upgrade", "Strength" }
+				RS.Remotes.FinalSelection:FireServer(unpack(args))
+				wait(0.01)
+			end
+		end)
+	end
+end)
+
+-- TOGGLE 3 - Coins
+makeToggle("Upgrade Coins", 120, function(on)
+	if on then
+		spawn(function()
+			while on do
+				local args = { "Upgrade", "Coins" }
+				RS.Remotes.FinalSelection:FireServer(unpack(args))
+				wait(0.01)
+			end
+		end)
+	end
+end)
+
+-- TOGGLE 4 - Damage
+makeToggle("Upgrade Damage", 160, function(on)
+	if on then
+		spawn(function()
+			while on do
+				local args = { "Upgrade", "Damage" }
+				RS.Remotes.FinalSelection:FireServer(unpack(args))
+				wait(0.01)
+			end
+		end)
+	end
+end)
+
+-- TOGGLE 5 - Health
+makeToggle("Upgrade Health", 200, function(on)
+	if on then
+		spawn(function()
+			while on do
+				local args = { "Upgrade", "Health" }
+				RS.Remotes.FinalSelection:FireServer(unpack(args))
+				wait(0.01)
+			end
+		end)
+	end
+end)
+
+-- TOGGLE 6 - CritDamage
+makeToggle("Upgrade Crit Damage", 240, function(on)
+	if on then
+		spawn(function()
+			while on do
+				local args = { "Upgrade", "CritDamage" }
+				RS.Remotes.FinalSelection:FireServer(unpack(args))
+				wait(0.01)
+			end
+		end)
+	end
+end)
+
+-- TOGGLE 7 - CritChance
+makeToggle("Upgrade Crit Chance", 280, function(on)
+	if on then
+		spawn(function()
+			while on do
+				local args = { "Upgrade", "CritChance" }
+				RS.Remotes.FinalSelection:FireServer(unpack(args))
+				wait(0.01)
+			end
+		end)
+	end
+end)
