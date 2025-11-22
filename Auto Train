@@ -116,7 +116,7 @@ local function safeFire(fn)
 end
 
 ---------------------------------------------------------------------
--- Select Dummy (checkbox style)
+-- Select Dummy
 ---------------------------------------------------------------------
 local dummyLabel = Instance.new("TextLabel")
 dummyLabel.Size = UDim2.new(0.8, 0, 0, 25)
@@ -227,7 +227,6 @@ local function antiAFK()
 			hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, 1)
 			task.wait(0.5)
 			hrp.CFrame = CFrame.new(oldPos)
-			print("[Anti-AFK] Moved slightly to prevent kick.")
 		end
 	end
 end
@@ -242,7 +241,7 @@ afkToggle.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------------------
--- Auto Height (fix return)
+-- Auto Height
 ---------------------------------------------------------------------
 local heightToggle = createToggle(mainFrame, "Auto Height: OFF", 0.69)
 local heightOn, heightLoop = false, nil
@@ -351,4 +350,30 @@ for _, name in ipairs(Worlds) do
 end
 tpLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 	tpList.CanvasSize = UDim2.new(0, 0, 0, tpLayout.AbsoluteContentSize.Y + 6)
+end)
+
+---------------------------------------------------------------------
+-- DEFAULT SETTINGS (Auto VIP, Auto Dummy ON, Auto TP World19)
+---------------------------------------------------------------------
+
+task.delay(0.5, function()
+
+	-- Select VIP
+	selectedDummy = "VIP"
+	vipBtn.BackgroundColor3 = Color3.fromRGB(0,180,90)
+	dummy1Btn.BackgroundColor3 = Color3.fromRGB(70,70,80)
+
+	-- Auto Dummy ON
+	dummyOn = true
+	dummyToggle.Text = "Auto Dummy: ON"
+	dummyToggle.BackgroundColor3 = Color3.fromRGB(0,180,90)
+	if dummyLoop then dummyLoop:Disconnect() end
+	dummyLoop = RunService.RenderStepped:Connect(fireDummy)
+
+	-- Teleport to World19
+	safeFire(function()
+		GameRemote:FireServer("Travel", "World19")
+	end)
+	tpSelected.Text = "World19"
+
 end)
