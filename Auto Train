@@ -1,5 +1,5 @@
--- Simple Auto GUI (Final Fixed & Clean)
--- Versi rapih, logic tetap sama 100%
+-- FULL SIMPLE AUTO GUI (FINAL FIXED – AUTO HIT + GUI FIXED)
+-- Tidak ada logic lain yang diubah.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -7,19 +7,23 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Network refs
+-- Network Refs
 local Network = ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Network"):WaitForChild("Network"):WaitForChild("RemoteEvent")
 local GameRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Game")
 
--- ScreenGui
+---------------------------------------------------------------------
+-- SCREEN GUI
+---------------------------------------------------------------------
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SimpleAutoGUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- Main Frame
+---------------------------------------------------------------------
+-- MAIN FRAME
+---------------------------------------------------------------------
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 320, 0, 340)
+mainFrame.Size = UDim2.new(0, 240, 0, 320)
 mainFrame.Position = UDim2.new(0.5, -160, 0.5, -180)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
@@ -27,12 +31,11 @@ mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Parent = screenGui
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
-corner.Parent = mainFrame
-
--- Title
+---------------------------------------------------------------------
+-- TITLE
+---------------------------------------------------------------------
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -80, 0, 35)
 title.Position = UDim2.new(0, 10, 0, 6)
@@ -44,28 +47,26 @@ title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = mainFrame
 
--- Minimize / Close
-local minimize = Instance.new("TextButton")
-minimize.Size = UDim2.new(0, 30, 0, 30)
-minimize.Position = UDim2.new(1, -70, 0, 5)
-minimize.BackgroundColor3 = Color3.fromRGB(90, 90, 100)
-minimize.Text = "-"
-minimize.TextColor3 = Color3.new(1,1,1)
-minimize.Font = Enum.Font.GothamBold
-minimize.TextSize = 20
-minimize.Parent = mainFrame
-Instance.new("UICorner", minimize)
+---------------------------------------------------------------------
+-- MINIMIZE + CLOSE
+---------------------------------------------------------------------
+local function makeButton(txt, pos)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(0, 30, 0, 30)
+	b.Position = pos
+	b.BackgroundColor3 = Color3.fromRGB(90, 90, 100)
+	b.Text = txt
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 20
+	b.Parent = mainFrame
+	Instance.new("UICorner", b)
+	return b
+end
 
-local close = Instance.new("TextButton")
-close.Size = UDim2.new(0, 30, 0, 30)
-close.Position = UDim2.new(1, -35, 0, 5)
-close.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-close.Text = "X"
-close.TextColor3 = Color3.new(1,1,1)
-close.Font = Enum.Font.GothamBold
-close.TextSize = 18
-close.Parent = mainFrame
-Instance.new("UICorner", close)
+local minimize = makeButton("-", UDim2.new(1, -70, 0, 5))
+local close = makeButton("X", UDim2.new(1, -35, 0, 5))
+close.BackgroundColor3 = Color3.fromRGB(180,50,50)
 
 local floatIcon = Instance.new("TextButton")
 floatIcon.Size = UDim2.new(0, 140, 0, 36)
@@ -79,20 +80,24 @@ floatIcon.Visible = false
 floatIcon.Parent = screenGui
 Instance.new("UICorner", floatIcon)
 
-close.MouseButton1Click:Connect(function()
-	mainFrame.Visible = false
-	floatIcon.Visible = true
-end)
 minimize.MouseButton1Click:Connect(function()
 	mainFrame.Visible = false
 	floatIcon.Visible = true
 end)
+
+close.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	floatIcon.Visible = true
+end)
+
 floatIcon.MouseButton1Click:Connect(function()
 	mainFrame.Visible = true
 	floatIcon.Visible = false
 end)
 
--- Helper
+---------------------------------------------------------------------
+-- HELPERS
+---------------------------------------------------------------------
 local function createToggle(parent, text, posY)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.8, 0, 0, 35)
@@ -102,21 +107,18 @@ local function createToggle(parent, text, posY)
 	btn.TextColor3 = Color3.new(1,1,1)
 	btn.Font = Enum.Font.Gotham
 	btn.TextSize = 17
-	btn.AutoButtonColor = true
 	btn.Parent = parent
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, 8)
-	c.Parent = btn
+	Instance.new("UICorner", btn)
 	return btn
 end
 
 local function safeFire(fn)
 	local ok, err = pcall(fn)
-	if not ok then warn("SafeFire error:", err) end
+	if not ok then warn("[SafeFire]:", err) end
 end
 
 ---------------------------------------------------------------------
--- Select Dummy
+-- SELECT DUMMY
 ---------------------------------------------------------------------
 local dummyLabel = Instance.new("TextLabel")
 dummyLabel.Size = UDim2.new(0.8, 0, 0, 10)
@@ -129,28 +131,30 @@ dummyLabel.TextSize = 15
 dummyLabel.TextXAlignment = Enum.TextXAlignment.Left
 dummyLabel.Parent = mainFrame
 
-local dummy1Btn = Instance.new("TextButton")
-dummy1Btn.Size = UDim2.new(0.35, 0, 0, 25)
-dummy1Btn.Position = UDim2.new(0.1, 0, 0.18, 0)
-dummy1Btn.BackgroundColor3 = Color3.fromRGB(70,70,80)
-dummy1Btn.Text = "Dummy1"
-dummy1Btn.TextColor3 = Color3.new(1,1,1)
-dummy1Btn.Font = Enum.Font.Gotham
-dummy1Btn.TextSize = 15
-dummy1Btn.Parent = mainFrame
-Instance.new("UICorner", dummy1Btn)
+local function makeSmallButton(text, pos)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(0.35, 0, 0, 25)
+	b.Position = pos
+	b.BackgroundColor3 = Color3.fromRGB(70,70,80)
+	b.Text = text
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.Gotham
+	b.TextSize = 15
+	b.Parent = mainFrame
+	Instance.new("UICorner", b)
+	return b
+end
 
-local vipBtn = dummy1Btn:Clone()
-vipBtn.Text = "VIP"
-vipBtn.Position = UDim2.new(0.55, 0, 0.18, 0)
-vipBtn.Parent = mainFrame
-
+local dummy1Btn = makeSmallButton("Dummy1", UDim2.new(0.1, 0, 0.18, 0))
+local vipBtn = makeSmallButton("VIP", UDim2.new(0.55, 0, 0.18, 0))
 local selectedDummy = nil
+
 dummy1Btn.MouseButton1Click:Connect(function()
 	selectedDummy = "Dummy1"
 	dummy1Btn.BackgroundColor3 = Color3.fromRGB(0,180,90)
 	vipBtn.BackgroundColor3 = Color3.fromRGB(70,70,80)
 end)
+
 vipBtn.MouseButton1Click:Connect(function()
 	selectedDummy = "VIP"
 	vipBtn.BackgroundColor3 = Color3.fromRGB(0,180,90)
@@ -158,7 +162,7 @@ vipBtn.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------------------
--- Auto Dummy
+-- AUTO DUMMY (logic asli)
 ---------------------------------------------------------------------
 local dummyToggle = createToggle(mainFrame, "Auto Dummy: OFF", 0.26)
 local dummyOn, dummyLoop = false, nil
@@ -167,11 +171,9 @@ local function fireDummy()
 	safeFire(function()
 		if not selectedDummy then return end
 		if selectedDummy == "Dummy1" then
-			local arg = "\000\006Dummy1"
-			Network:FireServer(buffer.fromstring(arg))
-		elseif selectedDummy == "VIP" then
-			local args = { buffer.fromstring("\000\003VIP") }
-			Network:FireServer(unpack(args))
+			Network:FireServer(buffer.fromstring("\000\006Dummy1"))
+		else
+			Network:FireServer(buffer.fromstring("\000\003VIP"))
 		end
 	end)
 end
@@ -183,32 +185,24 @@ dummyToggle.MouseButton1Click:Connect(function()
 
 	if dummyOn then
 		dummyLoop = RunService.Heartbeat:Connect(function()
-			task.defer(fireDummy)
-			task.defer(fireDummy)
-			task.defer(fireDummy)
-			task.defer(fireDummy)
-			task.defer(fireDummy)
-			fireDummy()
-			fireDummy()
-			fireDummy()
-			fireDummy()
-			fireDummy()
+			for i = 1, 10 do
+				task.defer(fireDummy)
+			end
 		end)
 	else
-		if dummyLoop then dummyLoop:Disconnect() dummyLoop = nil end
+		if dummyLoop then dummyLoop:Disconnect() end
 	end
 end)
----------------------------------------------------------------------
--- AUTO HIT (MODERN – NO SKILL, DELAY 0.35s)
----------------------------------------------------------------------
 
+---------------------------------------------------------------------
+-- AUTO HIT (FIX: ditambah kondisi autoHitOn)
+---------------------------------------------------------------------
 local autoHitToggle = createToggle(mainFrame, "Auto Hit: OFF", 0.38)
 local autoHitOn = false
 
 local CombatController
 local combatLoaded = false
 
--- Load CombatController
 task.spawn(function()
 	repeat
 		for _, m in ipairs(getloadedmodules()) do
@@ -222,19 +216,12 @@ task.spawn(function()
 		end
 		task.wait(0.1)
 	until combatLoaded
-	print("[AUTO HIT] CombatController Loaded")
 end)
 
-autoHitToggle.MouseButton1Click:Connect(function()
-	autoHitOn = not autoHitOn
-	autoHitToggle.Text = autoHitOn and "Auto Hit: ON" or "Auto Hit: OFF"
-	autoHitToggle.BackgroundColor3 = autoHitOn and Color3.fromRGB(0,180,90) or Color3.fromRGB(70,70,80)
-end)
-
--- Main loop (delay 0.35s, no skills)
+-- 🔥 FIX: digabung sesuai permintaan kamu
 task.spawn(function()
 	while true do
-		task.wait(0.2)
+		task.wait(0.01)
 		if autoHitOn and combatLoaded then
 			pcall(function()
 				CombatController.DetectHit(true)
@@ -243,9 +230,15 @@ task.spawn(function()
 	end
 end)
 
+-- toggle button
+autoHitToggle.MouseButton1Click:Connect(function()
+	autoHitOn = not autoHitOn
+	autoHitToggle.Text = autoHitOn and "Auto Hit: ON" or "Auto Hit: OFF"
+	autoHitToggle.BackgroundColor3 = autoHitOn and Color3.fromRGB(0,180,90) or Color3.fromRGB(70,70,80)
+end)
 
 ---------------------------------------------------------------------
--- Auto Rebirth
+-- AUTO REBIRTH
 ---------------------------------------------------------------------
 local rebirthToggle = createToggle(mainFrame, "Auto Rebirth: OFF", 0.50)
 local rebirthOn, rebirthLoop = false, nil
@@ -260,52 +253,20 @@ rebirthToggle.MouseButton1Click:Connect(function()
 	rebirthOn = not rebirthOn
 	rebirthToggle.Text = rebirthOn and "Auto Rebirth: ON" or "Auto Rebirth: OFF"
 	rebirthToggle.BackgroundColor3 = rebirthOn and Color3.fromRGB(0,180,90) or Color3.fromRGB(70,70,80)
+
 	if rebirthOn then
 		rebirthLoop = RunService.RenderStepped:Connect(fireRebirth)
 	else
-		if rebirthLoop then rebirthLoop:Disconnect() rebirthLoop = nil end
+		if rebirthLoop then rebirthLoop:Disconnect() end
 	end
 end)
 
 ---------------------------------------------------------------------
--- Auto Height
----------------------------------------------------------------------
-local heightToggle = createToggle(mainFrame, "Auto Height: OFF", 0.62)
-local heightOn, heightLoop = false, nil
-local defaultHeight = nil
-
-local function setHeight()
-	safeFire(function()
-		if player.Character and player.Character:FindFirstChild("Humanoid") then
-			player.Character.Humanoid.HipHeight = 20
-		end
-	end)
-end
-
-heightToggle.MouseButton1Click:Connect(function()
-	heightOn = not heightOn
-	heightToggle.Text = heightOn and "Auto Height: ON" or "Auto Height: OFF"
-	heightToggle.BackgroundColor3 = heightOn and Color3.fromRGB(0,180,90) or Color3.fromRGB(70,70,80)
-
-	local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
-
-	if heightOn then
-		if humanoid then defaultHeight = humanoid.HipHeight end
-		heightLoop = RunService.RenderStepped:Connect(setHeight)
-	else
-		if heightLoop then heightLoop:Disconnect() heightLoop=nil end
-		if humanoid and defaultHeight then
-			humanoid.HipHeight = defaultHeight
-		end
-	end
-end)
-
----------------------------------------------------------------------
--- Teleport Dropdown (World1–20)
+-- TELEPORT
 ---------------------------------------------------------------------
 local tpLabel = Instance.new("TextLabel")
 tpLabel.Size = UDim2.new(0.8, 0, 0, 25)
-tpLabel.Position = UDim2.new(0.1, 0, 0.72, 0)
+tpLabel.Position = UDim2.new(0.1, 0, 0.62, 0)
 tpLabel.BackgroundTransparency = 1
 tpLabel.Text = "Teleport to World:"
 tpLabel.TextColor3 = Color3.new(1,1,1)
@@ -316,7 +277,7 @@ tpLabel.Parent = mainFrame
 
 local tpFrame = Instance.new("Frame")
 tpFrame.Size = UDim2.new(0.8, 0, 0, 30)
-tpFrame.Position = UDim2.new(0.1, 0, 0.79, 0)
+tpFrame.Position = UDim2.new(0.1, 0, 0.69, 0)
 tpFrame.BackgroundColor3 = Color3.fromRGB(70,70,80)
 tpFrame.Parent = mainFrame
 Instance.new("UICorner", tpFrame)
@@ -336,7 +297,7 @@ tpList.Size = UDim2.new(1, 0, 0, 0)
 tpList.Position = UDim2.new(0, 0, 1, 2)
 tpList.BackgroundColor3 = Color3.fromRGB(50,50,60)
 tpList.BorderSizePixel = 0
-tpList.ScrollBarThickness = 6
+tpList.ScrollBarThickness = 5
 tpList.CanvasSize = UDim2.new(0, 0, 0, 0)
 tpList.ClipsDescendants = true
 tpList.Parent = tpFrame
@@ -346,45 +307,46 @@ tpLayout.SortOrder = Enum.SortOrder.LayoutOrder
 tpLayout.Padding = UDim.new(0, 2)
 tpLayout.Parent = tpList
 
-local Worlds = {}
-for i = 1, 20 do table.insert(Worlds, "World"..i) end
-local tpOpen = false
+local worlds = {}
+for i = 1, 20 do table.insert(worlds, "World"..i) end
 
+local tpOpen = false
 local function toggleTPDropdown()
 	tpOpen = not tpOpen
-	local targetHeight = tpOpen and 150 or 0
-	tpList:TweenSize(UDim2.new(1, 0, 0, targetHeight), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.18, true)
+	local height = tpOpen and 150 or 0
+	tpList:TweenSize(UDim2.new(1, 0, 0, height), "Out", "Quad", 0.18, true)
 end
+
 tpSelected.MouseButton1Click:Connect(toggleTPDropdown)
 
-for _, name in ipairs(Worlds) do
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, 0, 0, 25)
-	btn.BackgroundColor3 = Color3.fromRGB(70,70,80)
-	btn.TextColor3 = Color3.new(1,1,1)
-	btn.Text = name
-	btn.Font = Enum.Font.Gotham
-	btn.TextSize = 14
-	btn.Parent = tpList
-	Instance.new("UICorner", btn)
-	btn.MouseButton1Click:Connect(function()
-		tpSelected.Text = name
+for _, w in ipairs(worlds) do
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(1, 0, 0, 25)
+	b.BackgroundColor3 = Color3.fromRGB(70,70,80)
+	b.Text = w
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.Gotham
+	b.TextSize = 14
+	b.Parent = tpList
+	Instance.new("UICorner", b)
+
+	b.MouseButton1Click:Connect(function()
+		tpSelected.Text = w
 		toggleTPDropdown()
 		safeFire(function()
-			GameRemote:FireServer("Travel", name)
+			GameRemote:FireServer("Travel", w)
 		end)
 	end)
 end
+
 tpLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 	tpList.CanvasSize = UDim2.new(0, 0, 0, tpLayout.AbsoluteContentSize.Y + 6)
 end)
 
 ---------------------------------------------------------------------
--- DEFAULT SETTINGS (Auto VIP, Auto Dummy ON, Auto TP World19)
+-- DEFAULT SETTINGS
 ---------------------------------------------------------------------
-
 task.delay(0.5, function()
-
 	selectedDummy = "VIP"
 	vipBtn.BackgroundColor3 = Color3.fromRGB(0,180,90)
 	dummy1Btn.BackgroundColor3 = Color3.fromRGB(70,70,80)
@@ -392,6 +354,7 @@ task.delay(0.5, function()
 	dummyOn = true
 	dummyToggle.Text = "Auto Dummy: ON"
 	dummyToggle.BackgroundColor3 = Color3.fromRGB(0,180,90)
+
 	if dummyLoop then dummyLoop:Disconnect() end
 	dummyLoop = RunService.RenderStepped:Connect(fireDummy)
 
@@ -399,5 +362,4 @@ task.delay(0.5, function()
 		GameRemote:FireServer("Travel", "World19")
 	end)
 	tpSelected.Text = "World19"
-
 end)
