@@ -18,7 +18,7 @@ local GameRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Game"
 -- SCREEN GUI
 ---------------------------------------------------------------------
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "SimpleAutoGUI_StylishCombat"
+screenGui.Name = "Auto Train Hit and Skill"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
