@@ -326,9 +326,9 @@ towerBtn.MouseButton1Click:Connect(function()
 				-- update GUI title
 				Title.Text = "⚙️ Tower Floor: " .. displayNum
 
-				if displayNum >= 326 then
+				if displayNum >= 3260 then
 					stopFight()
-					warn("[Auto Tower] Reached Floor 326 → StopFight sent.")
+					warn("[Auto Tower] Reached Floor 3260 → StopFight sent.")
 					floorInternal = 1
 					task.wait(3)
 					break
