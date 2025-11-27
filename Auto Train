@@ -1,12 +1,9 @@
--- ============================================
--- FULL SIMPLE AUTO GUI + MODERN AUTO HIT & AUTO SKILL
--- Auto Dummy, Auto Rebirth, Teleport tetap utuh
--- Auto Hit & Auto Skill diganti dengan versi modern stylish
--- ============================================
-
+-- FULL SIMPLE AUTO GUI + MODERN AUTO HIT & AUTO SKILL WITH COOLDOWN
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
@@ -89,7 +86,6 @@ end)
 close.MouseButton1Click:Connect(function()
     screenGui:Destroy()  -- Destroy GUI sepenuhnya
 end)
-
 
 floatIcon.MouseButton1Click:Connect(function()
 	mainFrame.Visible = true
@@ -196,11 +192,16 @@ dummyToggle.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------------------------
--- MODERN AUTO HIT + AUTO SKILL Q/E/R
+-- MODERN AUTO HIT + AUTO SKILL Q/E/R WITH COOLDOWN
 ---------------------------------------------------------------------
 local autoHitToggle = createToggle(mainFrame,"Auto Hit: OFF",0.38)
 local autoSkillToggle = createToggle(mainFrame,"Auto Skill Q/E/R: OFF",0.50)
-local autoHitOn, autoSkillOn = false,false
+autoHitOn, autoSkillOn = false,false
+
+local skillCooldowns = { Q=10, E=20, R=30 }
+local lastSkillUse = { Q=0, E=0, R=0 }
+local skillIndex = 1
+local skillList = {"Q","E","R"}
 
 -- LOAD COMBAT MODULE
 local CombatModule
@@ -229,7 +230,7 @@ end)
 -- AUTO HIT LOOP
 task.spawn(function()
 	while true do
-		task.wait(0.01)
+		task.wait(0.05)
 		if autoHitOn and CombatModule and CombatModule.DetectHit then
 			pcall(function()
 				if CombatModule.CombatDebounce==false then
@@ -240,24 +241,25 @@ task.spawn(function()
 	end
 end)
 
--- AUTO SKILL LOOP
-local skillList = {"Q","E","R"}
-local skillIndex = 1
+-- AUTO SKILL LOOP WITH COOLDOWN
 task.spawn(function()
 	while true do
-		task.wait(0.2)
+		task.wait(0.5)
 		if autoSkillOn and CombatModule and CombatModule.UseSkill then
-			if CombatModule.CombatDebounce==false then
-				local skillName = skillList[skillIndex]
-				pcall(function() CombatModule.UseSkill(skillName) end)
-				skillIndex = skillIndex+1
-				if skillIndex>#skillList then skillIndex=1 end
+			local skillName = skillList[skillIndex]
+			local now = tick()
+			if now - (lastSkillUse[skillName] or 0) >= skillCooldowns[skillName] then
+				if CombatModule.CombatDebounce==false then
+					pcall(function() CombatModule.UseSkill(skillName) end)
+					lastSkillUse[skillName] = now
+				end
 			end
+			skillIndex = skillIndex + 1
+			if skillIndex>#skillList then skillIndex=1 end
 		end
 	end
 end)
 
--- BUTTON LOGIC
 autoHitToggle.MouseButton1Click:Connect(function()
 	autoHitOn = not autoHitOn
 	autoHitToggle.Text = autoHitOn and "Auto Hit: ON" or "Auto Hit: OFF"
@@ -373,7 +375,6 @@ end
 tpLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 	tpList.CanvasSize = UDim2.new(0, 0, 0, tpLayout.AbsoluteContentSize.Y + 6)
 end)
-
 ---------------------------------------------------------------------
 -- DEFAULT SETTINGS
 ---------------------------------------------------------------------
@@ -392,7 +393,6 @@ task.delay(0.5, function()
 	safeFire(function()
 		GameRemote:FireServer("Travel", "World19")
 	end)
-	tpSelected.Text = "World19"
 end)
 
-print("Full Stylish Auto GUI siap! Auto Hit + Auto Skill + Auto Dummy + Auto Rebirth + Teleport")
+print("Full Stylish Auto GUI siap! Auto Hit + Auto Skill (with cooldown) + Auto Dummy + Auto Rebirth + Teleport")
