@@ -230,7 +230,7 @@ end)
 -- AUTO HIT LOOP
 task.spawn(function()
 	while true do
-		task.wait(0.05)
+		task.wait(0.1)
 		if autoHitOn and CombatModule and CombatModule.DetectHit then
 			pcall(function()
 				if CombatModule.CombatDebounce==false then
