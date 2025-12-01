@@ -1,5 +1,5 @@
 --====================================================
--- MODERN AUTO WALK (FINAL VERSION WITH TOGGLES)
+-- MODERN AUTO WALK (FINAL + AUTO MERGE)
 --====================================================
 
 local Players = game:GetService("Players")
@@ -17,6 +17,7 @@ local RescueRemote = RS.Remotes.Rescue
 local running = false
 local autoLobby = false
 local autoNightmare = false
+local autoMerge = false   -- << NEW TOGGLE HERE
 
 ------------------------------------------------------
 -- GUI
@@ -27,8 +28,8 @@ gui.ResetOnSpawn = false
 gui.Parent = game:GetService("CoreGui")
 
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 260, 0, 220)
-main.Position = UDim2.new(0.5, -130, 0.4, -80)
+main.Size = UDim2.new(0, 260, 0, 260) -- ↑ height +40 for new toggle
+main.Position = UDim2.new(0.5, -130, 0.4, -100)
 main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 main.BorderSizePixel = 0
 main.Active = true
@@ -65,7 +66,7 @@ xBtn.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", xBtn).CornerRadius = UDim.new(0, 6)
 
 local container = Instance.new("Frame", main)
-container.Size = UDim2.new(1, -20, 0, 160)
+container.Size = UDim2.new(1, -20, 0, 200) -- +40 size for new button
 container.Position = UDim2.new(0, 10, 0, 50)
 container.BackgroundTransparency = 1
 
@@ -102,6 +103,19 @@ nightBtn.TextSize = 14
 nightBtn.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", nightBtn).CornerRadius = UDim.new(0, 10)
 
+--======================================================
+-- AUTO MERGE TOGGLE (NEW)
+--======================================================
+local mergeBtn = Instance.new("TextButton", container)
+mergeBtn.Size = UDim2.new(1, 0, 0, 36)
+mergeBtn.Position = UDim2.new(0, 0, 0, 138) -- below Nightmare
+mergeBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+mergeBtn.Text = "Auto Merge (OFF)"
+mergeBtn.Font = Enum.Font.GothamBold
+mergeBtn.TextSize = 14
+mergeBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", mergeBtn).CornerRadius = UDim.new(0, 10)
+
 ------------------------------------------------------
 -- MINIMIZE
 ------------------------------------------------------
@@ -115,7 +129,7 @@ minimize.MouseButton1Click:Connect(function()
 		minimize.Text = "+"
 	else
 		container.Visible = true
-		main.Size = UDim2.new(0, 260, 0, 220)
+		main.Size = UDim2.new(0, 260, 0, 260)
 		minimize.Text = "-"
 	end
 end)
@@ -151,8 +165,33 @@ nightBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+--======================================================
+-- AUTO MERGE LOOP
+--======================================================
+mergeBtn.MouseButton1Click:Connect(function()
+	autoMerge = not autoMerge
+	if autoMerge then
+		mergeBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 60)
+		mergeBtn.Text = "Auto Merge (ON)"
+	else
+		mergeBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+		mergeBtn.Text = "Auto Merge (OFF)"
+	end
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(0.5)
+		if autoMerge then
+			pcall(function()
+				RescueRemote:FireServer("MergeAll")
+			end)
+		end
+	end
+end)
+
 ------------------------------------------------------
--- WALK FUNCTIONS
+-- WALK FUNCTIONS AND MAIN LOOP (unchanged)
 ------------------------------------------------------
 
 local function FastWalkTo(pos)
@@ -198,9 +237,6 @@ local function FindMobInCages()
 	return nil
 end
 
-------------------------------------------------------
--- MAIN LOOP (STOP FIXED)
-------------------------------------------------------
 task.spawn(function()
 	while true do
 		task.wait(0.15)
@@ -227,9 +263,6 @@ task.spawn(function()
 	end
 end)
 
-------------------------------------------------------
--- START / STOP BUTTON
-------------------------------------------------------
 autoBtn.MouseButton1Click:Connect(function()
 	running = not running
 
@@ -239,6 +272,6 @@ autoBtn.MouseButton1Click:Connect(function()
 	else
 		autoBtn.Text = "Start AutoWalk"
 		autoBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
-		Hum:MoveTo(Char.HumanoidRootPart.Position) -- STOP WALK FIX
+		Hum:MoveTo(Char.HumanoidRootPart.Position)
 	end
 end)
