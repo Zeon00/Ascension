@@ -184,3 +184,9 @@ GUI:CreateButton({
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Upgrade%20Stat%20final"))()
 end})
+GUI:CreateButton({
+    parent = main, 
+    text = "Auto Upgrade Rescue", 
+    callback = function()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Auto%20Upgrade%20Rescue"))()
+end})
