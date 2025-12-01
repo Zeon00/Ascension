@@ -1,0 +1,244 @@
+--====================================================
+-- MODERN AUTO WALK (FINAL VERSION WITH TOGGLES)
+--====================================================
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local Char = player.Character or player.CharacterAdded:Wait()
+local Hum = Char:WaitForChild("Humanoid")
+
+local Enemies = workspace.Client.Enemies
+local Muzan = Enemies:WaitForChild("Muzan")
+
+local RS = game:GetService("ReplicatedStorage")
+local RescueRemote = RS.Remotes.Rescue
+
+local running = false
+local autoLobby = false
+local autoNightmare = false
+
+------------------------------------------------------
+-- GUI
+------------------------------------------------------
+local gui = Instance.new("ScreenGui")
+gui.Name = "AutoWalkModern"
+gui.ResetOnSpawn = false
+gui.Parent = game:GetService("CoreGui")
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 260, 0, 220)
+main.Position = UDim2.new(0.5, -130, 0.4, -80)
+main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, 0, 0, 32)
+title.BackgroundTransparency = 1
+title.Text = "Auto Fast Rescue"
+title.Font = Enum.Font.GothamSemibold
+title.TextSize = 16
+title.TextColor3 = Color3.new(1, 1, 1)
+
+local minimize = Instance.new("TextButton", main)
+minimize.Size = UDim2.new(0, 26, 0, 26)
+minimize.Position = UDim2.new(1, -60, 0, 4)
+minimize.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+minimize.Text = "-"
+minimize.Font = Enum.Font.GothamBold
+minimize.TextColor3 = Color3.new(1, 1, 1)
+minimize.TextSize = 16
+Instance.new("UICorner", minimize).CornerRadius = UDim.new(0, 6)
+
+local xBtn = Instance.new("TextButton", main)
+xBtn.Size = UDim2.new(0, 28, 0, 28)
+xBtn.Position = UDim2.new(1, -30, 0, 4)
+xBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+xBtn.Text = "X"
+xBtn.Font = Enum.Font.GothamBold
+xBtn.TextSize = 14
+xBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", xBtn).CornerRadius = UDim.new(0, 6)
+
+local container = Instance.new("Frame", main)
+container.Size = UDim2.new(1, -20, 0, 160)
+container.Position = UDim2.new(0, 10, 0, 50)
+container.BackgroundTransparency = 1
+
+-- AutoWalk Button
+local autoBtn = Instance.new("TextButton", container)
+autoBtn.Size = UDim2.new(1, 0, 0, 36)
+autoBtn.Position = UDim2.new(0, 0, 0, 0)
+autoBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+autoBtn.Text = "Start AutoWalk"
+autoBtn.Font = Enum.Font.GothamBold
+autoBtn.TextSize = 14
+autoBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 10)
+
+-- EnterLobby Toggle
+local lobbyBtn = Instance.new("TextButton", container)
+lobbyBtn.Size = UDim2.new(1, 0, 0, 36)
+lobbyBtn.Position = UDim2.new(0, 0, 0, 46)
+lobbyBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+lobbyBtn.Text = "Enter Lobby (OFF)"
+lobbyBtn.Font = Enum.Font.GothamBold
+lobbyBtn.TextSize = 14
+lobbyBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", lobbyBtn).CornerRadius = UDim.new(0, 10)
+
+-- Nightmare Toggle
+local nightBtn = Instance.new("TextButton", container)
+nightBtn.Size = UDim2.new(1, 0, 0, 36)
+nightBtn.Position = UDim2.new(0, 0, 0, 92)
+nightBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+nightBtn.Text = "Nightmare (OFF)"
+nightBtn.Font = Enum.Font.GothamBold
+nightBtn.TextSize = 14
+nightBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", nightBtn).CornerRadius = UDim.new(0, 10)
+
+------------------------------------------------------
+-- MINIMIZE
+------------------------------------------------------
+local minimized = false
+
+minimize.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	if minimized then
+		container.Visible = false
+		main.Size = UDim2.new(0, 260, 0, 40)
+		minimize.Text = "+"
+	else
+		container.Visible = true
+		main.Size = UDim2.new(0, 260, 0, 220)
+		minimize.Text = "-"
+	end
+end)
+
+xBtn.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+------------------------------------------------------
+-- REMOTE TOGGLES
+------------------------------------------------------
+lobbyBtn.MouseButton1Click:Connect(function()
+	autoLobby = not autoLobby
+	if autoLobby then
+		lobbyBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 60)
+		lobbyBtn.Text = "Enter Lobby (ON)"
+		RescueRemote:FireServer("EnterLobby")
+	else
+		lobbyBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+		lobbyBtn.Text = "Enter Lobby (OFF)"
+	end
+end)
+
+nightBtn.MouseButton1Click:Connect(function()
+	autoNightmare = not autoNightmare
+	if autoNightmare then
+		nightBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 60)
+		nightBtn.Text = "Nightmare (ON)"
+		RescueRemote:FireServer("Enter", "Nightmare")
+	else
+		nightBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+		nightBtn.Text = "Nightmare (OFF)"
+	end
+end)
+
+------------------------------------------------------
+-- WALK FUNCTIONS
+------------------------------------------------------
+
+local function FastWalkTo(pos)
+	Hum.WalkSpeed = 120
+	Hum:MoveTo(pos)
+end
+
+local function HasAnyEnemy()
+	for _, m in ipairs(Enemies:GetChildren()) do
+		if m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+local function WaitForEnemies()
+	while running and not HasAnyEnemy() do
+		task.wait(0.5)
+	end
+end
+
+local function FindNonMuzanMob()
+	for _, m in ipairs(Enemies:GetChildren()) do
+		if m.Name ~= "Muzan" and m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
+			return m
+		end
+	end
+	return nil
+end
+
+local function FindMobInCages()
+	for i = 1, 8 do
+		local cage = Enemies:FindFirstChild("Cage" .. i)
+		if cage then
+			for _, m in ipairs(cage:GetChildren()) do
+				if m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
+					return m
+				end
+			end
+		end
+	end
+	return nil
+end
+
+------------------------------------------------------
+-- MAIN LOOP (STOP FIXED)
+------------------------------------------------------
+task.spawn(function()
+	while true do
+		task.wait(0.15)
+		if not running then continue end
+
+		WaitForEnemies()
+		if not running then continue end
+
+		local mob = FindNonMuzanMob()
+		if mob and mob:FindFirstChild("HumanoidRootPart") then
+			FastWalkTo(mob.HumanoidRootPart.Position)
+			continue
+		end
+
+		local cageMob = FindMobInCages()
+		if cageMob and cageMob:FindFirstChild("HumanoidRootPart") then
+			FastWalkTo(cageMob.HumanoidRootPart.Position)
+			continue
+		end
+
+		if Muzan and Muzan:FindFirstChild("HumanoidRootPart") then
+			FastWalkTo(Muzan.HumanoidRootPart.Position)
+		end
+	end
+end)
+
+------------------------------------------------------
+-- START / STOP BUTTON
+------------------------------------------------------
+autoBtn.MouseButton1Click:Connect(function()
+	running = not running
+
+	if running then
+		autoBtn.Text = "Stop AutoWalk"
+		autoBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+	else
+		autoBtn.Text = "Start AutoWalk"
+		autoBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+		Hum:MoveTo(Char.HumanoidRootPart.Position) -- STOP WALK FIX
+	end
+end)
