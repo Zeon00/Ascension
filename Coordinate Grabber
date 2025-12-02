@@ -1,0 +1,108 @@
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+
+-- GUI
+local coordgui = Instance.new("ScreenGui")
+coordgui.Name = "coordgui"
+coordgui.Parent = game.CoreGui
+
+local main = Instance.new("Frame")
+main.Name = "main"
+main.Parent = coordgui
+main.Size = UDim2.new(0, 260, 0, 180)
+main.Position = UDim2.new(0.37, 0, 0.38, 0)
+main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+main.Active = true
+main.Draggable = true
+
+local corner = Instance.new("UICorner", main)
+corner.CornerRadius = UDim.new(0, 10)
+
+local stroke = Instance.new("UIStroke", main)
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(255, 185, 80)
+
+-- TITLE
+local title = Instance.new("TextLabel")
+title.Parent = main
+title.Size = UDim2.new(1, 0, 0, 28)
+title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Text = "📍 Coordinates Grabber"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+Instance.new("UICorner", title).CornerRadius = UDim.new(0, 10)
+
+-- COORD DISPLAY
+local cords = Instance.new("TextLabel")
+cords.Parent = main
+cords.Size = UDim2.new(1, -20, 0, 40)
+cords.Position = UDim2.new(0, 10, 0, 40)
+cords.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+cords.Font = Enum.Font.Gotham
+cords.TextColor3 = Color3.fromRGB(255, 255, 255)
+cords.TextSize = 14
+cords.Text = ""
+Instance.new("UICorner", cords).CornerRadius = UDim.new(0, 6)
+
+-- BUTTON MAKER
+local function newBtn(text, x, y, w, h, color)
+	local b = Instance.new("TextButton")
+	b.Parent = main
+	b.Size = UDim2.new(0, w, 0, h)
+	b.Position = UDim2.new(0, x, 0, y)
+	b.BackgroundColor3 = color
+	b.Text = text
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 14
+	b.TextColor3 = Color3.new(1,1,1)
+	b.BorderSizePixel = 0
+
+	local c = Instance.new("UICorner", b)
+	c.CornerRadius = UDim.new(0, 6)
+
+	return b
+end
+
+-- BUTTONS
+local grab = newBtn("Grab", 10, 90, 120, 32, Color3.fromRGB(70, 180, 80))
+local copy = newBtn("Copy", 140, 90, 110, 32, Color3.fromRGB(40, 140, 255))
+local teleport = newBtn("Teleport", 10, 135, 120, 32, Color3.fromRGB(255, 160, 70))
+local close = newBtn("Close", 140, 135, 110, 32, Color3.fromRGB(255, 80, 80))
+
+-- FUNCTIONS
+grab.MouseButton1Down:Connect(function()
+	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+	if hrp then
+		cords.Text = tostring(hrp.Position)
+	end
+end)
+
+copy.MouseButton1Down:Connect(function()
+	if setclipboard then
+		setclipboard(cords.Text)
+	end
+end)
+
+close.MouseButton1Down:Connect(function()
+	coordgui:Destroy()
+end)
+
+-- Split helper
+local function split(s)
+	local t = {}
+	for v in s:gmatch("[^, ]+") do
+		table.insert(t, tonumber(v))
+	end
+	return t
+end
+
+teleport.MouseButton1Down:Connect(function()
+	if cords.Text ~= "" then
+		local pos = split(cords.Text)
+		if #pos == 3 then
+			lp.Character.HumanoidRootPart.CFrame = CFrame.new(pos[1], pos[2], pos[3])
+		end
+	end
+end)
