@@ -1,0 +1,174 @@
+-- ▼ DATA LOKASI TELEPORT ▼
+local teleports = {
+    ["Rescue Update"]      = CFrame.new(-2160.851318359375, -38.319091796875, -4596.44482421875),
+    ["Rescue Armor"]       = CFrame.new(-2155.59765625, -38.128868103027344, -4806.81689453125),
+    ["Shiny Machine"]      = CFrame.new(172.74571228027344, 4.100512504577637, 510.97796630859375),
+    ["Blood Damage"]       = CFrame.new(180.7449493408203, 4.093825340270996, 429.8250732421875),
+    ["Infinity Tower"]     = CFrame.new(140.41871643066406, 4.852442741394043, 391.51934814453125),
+    ["Rainbow Machine"]    = CFrame.new(155.18556213378906, 4.0963215827941895, 1035.5350341796875),
+    ["Celestial Machine"]  = CFrame.new(165.6229248046875, 6.379764080047607, 1928.8878173828125),
+    ["Raid Machine"]       = CFrame.new(163.37872314453125, 4.242587566375732, 1853.8154296875),
+    ["Void Machine"]       = CFrame.new(159.9637908935547, 4.7390666007995605, 4044.9111328125),
+    ["Mark Machine"]       = CFrame.new(142.82994079589844, 4.7912278175354, 17675.302734375),
+}
+
+local player = game.Players.LocalPlayer
+
+-- ▼ GUI ▼
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "TeleportDropdownUI"
+
+local frame = Instance.new("Frame", gui)
+frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+frame.Position = UDim2.new(0.04, 0, 0.45, 0)
+frame.Size = UDim2.new(0, 220, 0, 40)
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+local stroke = Instance.new("UIStroke", frame)
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(255,200,80)
+
+---------------------------------------------------------------------
+-- ▼ DRAG SYSTEM CUSTOM (SMOOTH)
+---------------------------------------------------------------------
+local UIS = game:GetService("UserInputService")
+local dragging, dragStart, startPos
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(
+        startPos.X.Scale, startPos.X.Offset + delta.X,
+        startPos.Y.Scale, startPos.Y.Offset + delta.Y
+    )
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        updateDrag(input)
+    end
+end)
+
+---------------------------------------------------------------------
+
+-- ▼ CLOSE BUTTON (X)
+local close = Instance.new("TextButton", frame)
+close.Size = UDim2.new(0, 30, 0, 30)
+close.Position = UDim2.new(1, -35, 0, 5)
+close.BackgroundColor3 = Color3.fromRGB(170, 40, 40)
+close.Text = "X"
+close.Font = Enum.Font.GothamBold
+close.TextColor3 = Color3.new(1,1,1)
+close.TextSize = 16
+close.BorderSizePixel = 0
+Instance.new("UICorner", close).CornerRadius = UDim.new(0, 6)
+
+close.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+-- ▼ MINIMIZE BUTTON
+local minimize = Instance.new("TextButton", frame)
+minimize.Size = UDim2.new(0, 30, 0, 30)
+minimize.Position = UDim2.new(1, -70, 0, 5)
+minimize.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+minimize.Text = "-"
+minimize.Font = Enum.Font.GothamBold
+minimize.TextSize = 18
+minimize.TextColor3 = Color3.new(1,1,1)
+minimize.BorderSizePixel = 0
+Instance.new("UICorner", minimize).CornerRadius = UDim.new(0, 6)
+
+local minimized = false
+
+-- ▼ TITLE BUTTON (Dropdown Toggle)
+local title = Instance.new("TextButton", frame)
+title.Size = UDim2.new(1, -80, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "📍 Teleport Menu ▼"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextColor3 = Color3.new(1,1,1)
+
+-- ▼ DROPDOWN
+local dropdown = Instance.new("Frame", frame)
+dropdown.BackgroundColor3 = Color3.fromRGB(25,25,25)
+dropdown.Position = UDim2.new(0, 0, 1, 0)
+dropdown.Size = UDim2.new(1, 0, 0, 0)
+dropdown.Visible = false
+Instance.new("UICorner", dropdown).CornerRadius = UDim.new(0, 8)
+
+local list = Instance.new("UIListLayout", dropdown)
+list.Padding = UDim.new(0, 4)
+
+local isOpen = false
+
+local function toggleDropdown()
+    if minimized then return end
+
+    isOpen = not isOpen
+    dropdown.Visible = isOpen
+    title.Text = isOpen and "📍 Teleport Menu ▲" or "📍 Teleport Menu ▼"
+
+    if isOpen then
+        dropdown:TweenSize(UDim2.new(1, 0, 0, (#teleports * 32) + 5), "Out", "Quad", 0.25)
+        frame:TweenSize(UDim2.new(0, 220, 0, (#teleports * 32) + 45), "Out", "Quad", 0.25)
+    else
+        dropdown:TweenSize(UDim2.new(1, 0, 0, 0), "Out", "Quad", 0.25)
+        frame:TweenSize(UDim2.new(0, 220, 0, 40), "Out", "Quad", 0.25)
+    end
+end
+
+title.MouseButton1Click:Connect(toggleDropdown)
+
+-- ▼ MINIMIZE CLICK
+minimize.MouseButton1Click:Connect(function()
+    minimized = not minimized
+
+    if minimized then
+        dropdown.Visible = false
+        minimize.Text = "⬜"
+        frame:TweenSize(UDim2.new(0, 220, 0, 35), "Out", "Quad", 0.2)
+    else
+        minimize.Text = "-"
+        frame:TweenSize(UDim2.new(0, 220, 0, 40), "Out", "Quad", 0.2)
+    end
+end)
+
+-- ▼ TELEPORT BUTTONS
+for name, pos in pairs(teleports) do
+    local btn = Instance.new("TextButton", dropdown)
+    btn.Size = UDim2.new(1, -10, 0, 30)
+    btn.Position = UDim2.new(0, 5, 0, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    btn.Text = name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.TextSize = 13
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+    end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    end)
+
+    btn.MouseButton1Click:Connect(function()
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.CFrame = pos end
+    end)
+end
