@@ -1,9 +1,12 @@
 --====================================================
--- MODERN AUTO WALK + AUTO MERGE (FINAL FIXED GUI)
+-- MODERN AUTO WALK + AUTO MERGE (FINAL CLEAN)
 --====================================================
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RescueRemote = RS:WaitForChild("Remotes"):WaitForChild("Rescue")
 
 --====================================================
 -- AUTO UPDATE CHARACTER
@@ -17,19 +20,17 @@ player.CharacterAdded:Connect(function(newChar)
 end)
 
 --====================================================
--- SERVICES
+-- VARIABLES
 --====================================================
-local Enemies = workspace.Client.Enemies
-local RS = game:GetService("ReplicatedStorage")
-local RescueRemote = RS.Remotes.Rescue
-
+local Enemies = Workspace.Client.Enemies
 local running = false
 local autoLobby = false
-local autoNightmare = false
 local autoMerge = false
 
+local MUZAN_CHAMBER_POS = Vector3.new(-2372.6838, -91.4083, -3167.7165)
+
 --====================================================
--- GUI MAIN
+-- GUI
 --====================================================
 local gui = Instance.new("ScreenGui")
 gui.Name = "AutoWalkModern"
@@ -37,7 +38,7 @@ gui.ResetOnSpawn = false
 gui.Parent = game:GetService("CoreGui")
 
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 260, 0, 260)
+main.Size = UDim2.new(0, 260, 0, 200)
 main.Position = UDim2.new(0.5, -130, 0.4, -100)
 main.BackgroundColor3 = Color3.fromRGB(30,30,30)
 main.BorderSizePixel = 0
@@ -46,27 +47,7 @@ main.Draggable = true
 main.Parent = gui
 Instance.new("UICorner", main).CornerRadius = UDim.new(0,12)
 
---====================================================
--- 🔥 ICON MODE (MINIMIZE TO ICON)
---====================================================
-local icon = Instance.new("TextButton")
-icon.Size = UDim2.new(0,40,0,40)
-icon.Position = UDim2.new(0.5, -20, 0.4, -20)
-icon.BackgroundColor3 = Color3.fromRGB(255,80,40)
-icon.Text = "🔥"
-icon.Font = Enum.Font.GothamBold
-icon.TextSize = 22
-icon.TextColor3 = Color3.new(1,1,1)
-icon.Visible = false
-icon.Active = true
-icon.Draggable = true
-icon.Parent = gui
-
-Instance.new("UICorner", icon).CornerRadius = UDim.new(0,10)
-
---====================================================
--- TITLE
---====================================================
+-- Title
 local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, 0, 0, 32)
 title.BackgroundTransparency = 1
@@ -75,9 +56,7 @@ title.Font = Enum.Font.GothamSemibold
 title.TextSize = 16
 title.TextColor3 = Color3.new(1,1,1)
 
---====================================================
--- TOP BUTTONS (MINIMIZE & CLOSE)
---====================================================
+-- Minimize & Close
 local minimize = Instance.new("TextButton", main)
 minimize.Size = UDim2.new(0,28,0,28)
 minimize.Position = UDim2.new(1,-60,0,4)
@@ -97,81 +76,62 @@ xBtn.Font = Enum.Font.GothamBold
 xBtn.TextSize = 14
 xBtn.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", xBtn).CornerRadius = UDim.new(0,6)
+xBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
 
-xBtn.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
-
---====================================================
--- CONTAINER BUTTON AREA
---====================================================
+-- Container
 local container = Instance.new("Frame", main)
 container.Size = UDim2.new(1,-20,0,200)
 container.Position = UDim2.new(0,10,0,50)
 container.BackgroundTransparency = 1
 
---====================================================
--- BUTTONS
---====================================================
-local autoBtn = Instance.new("TextButton", container)
-autoBtn.Size = UDim2.new(1,0,0,36)
+-- Buttons
+local function createButton(text, posY)
+    local btn = Instance.new("TextButton", container)
+    btn.Size = UDim2.new(1,0,0,36)
+    btn.Position = UDim2.new(0,0,0,posY)
+    btn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+    return btn
+end
+
+local autoBtn = createButton("Start AutoWalk", 0)
 autoBtn.BackgroundColor3 = Color3.fromRGB(50,120,220)
-autoBtn.Text = "Start AutoWalk"
-autoBtn.Font = Enum.Font.GothamBold
-autoBtn.TextSize = 14
-autoBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0,10)
 
-local lobbyBtn = Instance.new("TextButton", container)
-lobbyBtn.Size = UDim2.new(1,0,0,36)
-lobbyBtn.Position = UDim2.new(0,0,0,46)
-lobbyBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
-lobbyBtn.Text = "Enter Lobby (OFF)"
-lobbyBtn.Font = Enum.Font.GothamBold
-lobbyBtn.TextSize = 14
-lobbyBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", lobbyBtn).CornerRadius = UDim.new(0,10)
+local lobbyBtn = createButton("Enter Lobby (OFF)", 46)
+local mergeBtn = createButton("Auto Merge (OFF)", 92)
 
-local nightBtn = Instance.new("TextButton", container)
-nightBtn.Size = UDim2.new(1,0,0,36)
-nightBtn.Position = UDim2.new(0,0,0,92)
-nightBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
-nightBtn.Text = "Nightmare (OFF)"
-nightBtn.Font = Enum.Font.GothamBold
-nightBtn.TextSize = 14
-nightBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", nightBtn).CornerRadius = UDim.new(0,10)
-
-local mergeBtn = Instance.new("TextButton", container)
-mergeBtn.Size = UDim2.new(1,0,0,36)
-mergeBtn.Position = UDim2.new(0,0,0,138)
-mergeBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
-mergeBtn.Text = "Auto Merge (OFF)"
-mergeBtn.Font = Enum.Font.GothamBold
-mergeBtn.TextSize = 14
-mergeBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", mergeBtn).CornerRadius = UDim.new(0,10)
+-- Fire icon for minimized mode
+local icon = Instance.new("TextButton")
+icon.Size = UDim2.new(0,60,0,60)
+icon.Position = UDim2.new(0.5, -30, 0.4, -30)
+icon.BackgroundColor3 = Color3.fromRGB(255,80,40)
+icon.Text = "🔥"
+icon.Font = Enum.Font.GothamBold
+icon.TextSize = 36
+icon.TextColor3 = Color3.new(1,1,1)
+icon.Visible = false
+icon.Active = true
+icon.Draggable = true
+icon.Parent = gui
+Instance.new("UICorner", icon).CornerRadius = UDim.new(0,10)
 
 --====================================================
--- MINIMIZE LOGIC
+-- TOGGLE LOGIC
 --====================================================
 local minimized = false
-
 minimize.MouseButton1Click:Connect(function()
     minimized = not minimized
-    if minimized then
-        main.Visible = false
-        icon.Visible = true
-    else
-        icon.Visible = false
-        main.Visible = true
-    end
+    main.Visible = not minimized
+    icon.Visible = minimized
 end)
-
 icon.MouseButton1Click:Connect(function()
     minimized = false
-    icon.Visible = false
     main.Visible = true
+    icon.Visible = false
 end)
 
 --====================================================
@@ -182,22 +142,12 @@ lobbyBtn.MouseButton1Click:Connect(function()
     if autoLobby then
         lobbyBtn.BackgroundColor3 = Color3.fromRGB(50,200,60)
         lobbyBtn.Text = "Enter Lobby (ON)"
-        RescueRemote:FireServer("EnterLobby")
+        pcall(function()
+            RescueRemote:FireServer("EnterLobby")
+        end)
     else
         lobbyBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
         lobbyBtn.Text = "Enter Lobby (OFF)"
-    end
-end)
-
-nightBtn.MouseButton1Click:Connect(function()
-    autoNightmare = not autoNightmare
-    if autoNightmare then
-        nightBtn.BackgroundColor3 = Color3.fromRGB(50,200,60)
-        nightBtn.Text = "Nightmare (ON)"
-        RescueRemote:FireServer("Enter", "Nightmare")
-    else
-        nightBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
-        nightBtn.Text = "Nightmare (OFF)"
     end
 end)
 
@@ -213,136 +163,124 @@ mergeBtn.MouseButton1Click:Connect(function()
 end)
 
 --====================================================
--- AUTO MERGE LOOP
+-- MOVEMENT / HELPER FUNCTIONS
 --====================================================
-task.spawn(function()
-	while true do
-		task.wait(0.5)
-		if autoMerge then
-			pcall(function()
-				RescueRemote:FireServer("MergeAll")
-			end)
-		end
-	end
-end)
-
-task.spawn(function()
-	while true do
-		task.wait(3)
-		if autoNightmare then
-			if workspace:FindFirstChild("Lobby") then
-				RescueRemote:FireServer("Enter", "Nightmare")
-			end
-		end
-	end
-end)
-
---====================================================
--- MOVEMENT LOGIC
---====================================================
-local function FastWalkTo(pos)
-	if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-
-	local root = Char.HumanoidRootPart
-	local currentY = root.Position.Y
-
-	-- AMAN: Y selalu pakai Y karakter, bukan Y target
-	local safePos = Vector3.new(pos.X, currentY, pos.Z)
-
-	-- Menghadap target (aman, Y disamakan)
-	root.CFrame = CFrame.lookAt(root.Position, safePos)
-
-	-- Jalan
-	Hum.WalkSpeed = 120
-	Hum:MoveTo(safePos)
+local function faceAndMoveTo(pos, speed)
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+    local root = Char.HumanoidRootPart
+    local currentY = root.Position.Y
+    local safePos = Vector3.new(pos.X, currentY, pos.Z)
+    root.CFrame = CFrame.lookAt(root.Position, safePos)
+    Hum.WalkSpeed = speed
+    Hum:MoveTo(safePos)
 end
 
-
 local function FindNormalMob()
-	for _, m in ipairs(Enemies:GetChildren()) do
-		if m.Name ~= "Muzan" and m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
-			return m
-		end
-	end
-	return nil
+    for _, m in ipairs(Enemies:GetChildren()) do
+        if m.Name ~= "Muzan" and m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
+            return m
+        end
+    end
+    return nil
 end
 
 local function FindNearestCage()
-	local root = Char:FindFirstChild("HumanoidRootPart")
-	if not root then return nil end
-
-	local nearest, dist = nil, math.huge
-	for i = 1, 8 do
-		local cage = Enemies:FindFirstChild("Cage"..i)
-		if cage and cage:FindFirstChild("Hitbox") then
-			local pos = cage.Hitbox.Position
-			local d = (root.Position - pos).Magnitude
-			if d < dist then
-				dist = d
-				nearest = cage
-			end
-		end
-	end
-	return nearest
+    local root = Char:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+    local nearest, dist = nil, math.huge
+    for i = 1, 8 do
+        local cage = Enemies:FindFirstChild("Cage"..i)
+        if cage and cage:FindFirstChild("Hitbox") then
+            local d = (root.Position - cage.Hitbox.Position).Magnitude
+            if d < dist then
+                dist = d
+                nearest = cage
+            end
+        end
+    end
+    return nearest
 end
 
 local function CountNonMuzan()
-	local c = 0
-	for _, m in ipairs(Enemies:GetChildren()) do
-		if m.Name ~= "Muzan" and m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
-			c += 1
-		end
-	end
-	return c
+    local c = 0
+    for _, m in ipairs(Enemies:GetChildren()) do
+        if m.Name ~= "Muzan" and m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
+            c += 1
+        end
+    end
+    return c
 end
 
 local function GetMuzan()
-	for _, m in ipairs(Enemies:GetChildren()) do
-		if m.Name == "Muzan" and m:FindFirstChild("HumanoidRootPart") then
-			return m
-		end
-	end
-	return nil
+    for _, m in ipairs(Enemies:GetChildren()) do
+        if m.Name == "Muzan" and m:FindFirstChild("HumanoidRootPart") then
+            return m
+        end
+    end
+    return nil
+end
+
+local function tryGetMuzanPortal()
+    return Enemies:FindFirstChild("9508221593-MuzanPortal")
 end
 
 --====================================================
--- MAIN WALK LOOP
+-- AUTO LOOPS
 --====================================================
+-- AutoMerge
 task.spawn(function()
-	while true do
-		task.wait(0.15)
-		if not running then continue end
-
-		local mob = FindNormalMob()
-		if mob then
-			FastWalkTo(mob.HumanoidRootPart.Position)
-			continue
-		end
-
-		local cage = FindNearestCage()
-		if cage then
-			FastWalkTo(cage.Hitbox.Position)
-			continue
-		end
-
-		if CountNonMuzan() == 0 then
-			local muz = GetMuzan()
-			if muz then
-				FastWalkTo(muz.HumanoidRootPart.Position)
-			end
-		end
-	end
+    while true do
+        task.wait(0.5)
+        if autoMerge then
+            pcall(function() RescueRemote:FireServer("MergeAll") end)
+        end
+    end
 end)
 
--- START/STOP BUTTON
-autoBtn.MouseButton1Click:Connect(function()
-	running = not running
+-- AutoWalk / Logic
+task.spawn(function()
+    while true do
+        task.wait(0.12)
+        if not running then continue end
 
-	if running then
-		autoBtn.Text = "Stop AutoWalk"
-		autoBtn.BackgroundColor3 = Color3.fromRGB(220,80,80)
-	else
-		autoBtn.Text = "Start AutoWalk"
-		autoBtn.BackgroundColor3 = Color3.fromRGB(50,120,220)
-	end
+        local mob = FindNormalMob()
+        if mob then
+            faceAndMoveTo(mob.HumanoidRootPart.Position, 120)
+            continue
+        end
+
+        local cage = FindNearestCage()
+        if cage then
+            faceAndMoveTo(cage.Hitbox.Position, 100)
+            continue
+        end
+
+        if CountNonMuzan() == 0 then
+            local portal = tryGetMuzanPortal()
+            if portal and portal:FindFirstChild("MuzanChamber") then
+                faceAndMoveTo(portal.MuzanChamber.Position, 100)
+            else
+                faceAndMoveTo(MUZAN_CHAMBER_POS, 100)
+            end
+        end
+
+        local muz = GetMuzan()
+        if muz then
+            faceAndMoveTo(muz.HumanoidRootPart.Position, 100)
+        end
+    end
+end)
+
+--====================================================
+-- START/STOP BUTTON
+--====================================================
+autoBtn.MouseButton1Click:Connect(function()
+    running = not running
+    if running then
+        autoBtn.Text = "Stop AutoWalk"
+        autoBtn.BackgroundColor3 = Color3.fromRGB(220,80,80)
+    else
+        autoBtn.Text = "Start AutoWalk"
+        autoBtn.BackgroundColor3 = Color3.fromRGB(50,120,220)
+    end
 end)
