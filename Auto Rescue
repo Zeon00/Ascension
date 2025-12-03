@@ -1,5 +1,6 @@
 --====================================================
--- MODERN AUTO WALK + AUTO MERGE + AUTO LOBBY + AUTO HIT
+-- MODERN AUTO WALK + AUTO MERGE + AUTO LOBBY + AUTO HIT + NIGHTMARE + EXIT
+-- Auto stop saat teleport ke lobby
 --====================================================
 
 local Players = game:GetService("Players")
@@ -29,8 +30,12 @@ local running = false
 local autoLobby = false
 local autoMerge = false
 local autoHitOn = false
+local autoNightmare = false
+local autoExit = false
 
 local MUZAN_CHAMBER_POS = Vector3.new(-2372.6838, -91.4083, -3167.7165)
+local LOBBY_POS = Vector3.new(-2219.39, -38.32, -4697.68)
+local LOBBY_RADIUS = 12
 
 --====================================================
 -- GUI
@@ -41,7 +46,7 @@ gui.ResetOnSpawn = false
 gui.Parent = game:GetService("CoreGui")
 
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 260, 0, 240)
+main.Size = UDim2.new(0, 260, 0, 360)
 main.Position = UDim2.new(0.5, -130, 0.4, -100)
 main.BackgroundColor3 = Color3.fromRGB(30,30,30)
 main.BorderSizePixel = 0
@@ -119,10 +124,12 @@ local function createButton(text, posY)
     return btn
 end
 
-local autoBtn  = createButton("Start AutoWalk", 46)
-local lobbyBtn = createButton("Enter Lobby (OFF)", 92)
-local mergeBtn = createButton("Auto Merge (OFF)", 138)
-local hitBtn   = createButton("Auto Hit: OFF", 184)
+local autoBtn      = createButton("Start AutoWalk", 46)
+local lobbyBtn     = createButton("Enter Lobby (OFF)", 92)
+local mergeBtn     = createButton("Auto Merge (OFF)", 138)
+local hitBtn       = createButton("Auto Hit: OFF", 184)
+local nightmareBtn = createButton("Nightmare Enter (OFF)", 230)
+local exitBtn      = createButton("Exit (OFF)", 276)
 
 --====================================================
 -- TOGGLE LOGIC
@@ -171,6 +178,36 @@ hitBtn.MouseButton1Click:Connect(function()
     else
         hitBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
         hitBtn.Text = "Auto Hit: OFF"
+    end
+end)
+
+nightmareBtn.MouseButton1Click:Connect(function()
+    autoNightmare = not autoNightmare
+    if autoNightmare then
+        nightmareBtn.BackgroundColor3 = Color3.fromRGB(50,200,60)
+        nightmareBtn.Text = "Nightmare Enter (ON)"
+        pcall(function()
+            local args = {"Enter", "Nightmare"}
+            RescueRemote:FireServer(unpack(args))
+        end)
+    else
+        nightmareBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+        nightmareBtn.Text = "Nightmare Enter (OFF)"
+    end
+end)
+
+exitBtn.MouseButton1Click:Connect(function()
+    autoExit = not autoExit
+    if autoExit then
+        exitBtn.BackgroundColor3 = Color3.fromRGB(50,200,60)
+        exitBtn.Text = "Exit (ON)"
+        pcall(function()
+            local args = {"Exit"}
+            RescueRemote:FireServer(unpack(args))
+        end)
+    else
+        exitBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+        exitBtn.Text = "Exit (OFF)"
     end
 end)
 
@@ -230,6 +267,12 @@ local function GetMuzan()
     return nil
 end
 
+local function IsInLobby()
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return false end
+    local dist = (Char.HumanoidRootPart.Position - LOBBY_POS).Magnitude
+    return dist <= LOBBY_RADIUS
+end
+
 --====================================================
 -- AUTO LOOPS
 --====================================================
@@ -247,7 +290,11 @@ end)
 task.spawn(function()
     while true do
         task.wait(0.12)
-        if not running then continue end
+        if not running or IsInLobby() then
+            running = false
+            autoHitOn = false
+            continue
+        end
 
         local mob = FindNormalMob()
         if mob then
@@ -261,19 +308,16 @@ task.spawn(function()
             continue
         end
 
-        -- Cek portal chamber dulu
         local portal = Enemies:FindFirstChild("9508221593-MuzanPortal")
         if portal and portal:FindFirstChild("MuzanChamber") then
             faceAndMoveTo(portal.MuzanChamber.Position, 100)
             continue
         end
 
-        -- Kalau portal ga ada, tapi semua mob & cage habis, ke MUZAN_CHAMBER_POS
         if CountNonMuzan() == 0 then
             faceAndMoveTo(MUZAN_CHAMBER_POS, 100)
         end
 
-        -- Hadapi Muzan terakhir, kalau portal & mob & cage ga ada
         local muz = GetMuzan()
         if muz then
             faceAndMoveTo(muz.HumanoidRootPart.Position, 100)
@@ -282,9 +326,8 @@ task.spawn(function()
 end)
 
 --====================================================
--- AUTO HIT LOOP
+-- AUTO HIT LOOP (diperbaiki)
 --====================================================
--- load CombatModule sama seperti script Auto Hit mu
 local CombatModule
 task.spawn(function()
     repeat
@@ -310,13 +353,23 @@ task.spawn(function()
     while true do
         task.wait(0.1)
         if autoHitOn and CombatModule and CombatModule.DetectHit then
+            if IsInLobby() then
+                autoHitOn = false
+                running = false
+                continue
+            end
             pcall(function()
                 if CombatModule.CombatDebounce == false then
                     CombatModule.DetectHit(true)
                 end
             end)
+        elseif not autoHitOn and CombatModule and CombatModule.DetectHit then
+            -- hentikan hit jika toggle dimatikan
+            pcall(function()
+                CombatModule.DetectHit(false)
+            end)
         end
     end
 end)
 
-print("Auto Walk + Merge + Lobby + Hit siap! GUI aman, damage normal, player aman.")
+print("Auto Walk + Merge + Lobby + Hit + Nightmare + Exit siap! GUI aman, player aman.")
