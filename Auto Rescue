@@ -286,7 +286,7 @@ task.spawn(function()
     end
 end)
 
--- AutoWalk / Logic (Update)
+-- AutoWalk / Logic
 task.spawn(function()
     while true do
         task.wait(0.12)
@@ -326,7 +326,7 @@ task.spawn(function()
 end)
 
 --====================================================
--- AUTO HIT LOOP (diperbaiki)
+-- AUTO HIT LOOP STABIL
 --====================================================
 local CombatModule
 task.spawn(function()
@@ -343,32 +343,26 @@ task.spawn(function()
     until CombatModule
 end)
 
+-- Init module
 task.spawn(function()
     repeat task.wait() until CombatModule
     CombatModule.Init(require(RS.Modules.Data))
     CombatModule.Start()
 end)
 
+-- Loop utama Auto Hit
 task.spawn(function()
+    repeat task.wait() until CombatModule
     while true do
-        task.wait(0.1)
-        if autoHitOn and CombatModule and CombatModule.DetectHit then
-            if IsInLobby() then
-                autoHitOn = false
-                running = false
-                continue
-            end
+        task.wait(0.05)
+        if autoHitOn and not IsInLobby() then
             pcall(function()
                 if CombatModule.CombatDebounce == false then
                     CombatModule.DetectHit(true)
                 end
             end)
-        elseif not autoHitOn and CombatModule and CombatModule.DetectHit then
-            -- hentikan hit jika toggle dimatikan
-            pcall(function()
-                CombatModule.DetectHit(false)
-            end)
         end
+        -- jika autoHitOn = false, tidak memanggil DetectHit sama sekali
     end
 end)
 
