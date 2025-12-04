@@ -1,42 +1,11 @@
 --====================================================
 -- FULL MODERN AUTO GUI (FINAL COMPLETE VERSION)
--- Reconnect • AutoWalk • AutoHit • AutoFight • Nightmare Loop
+-- AutoWalk • AutoHit • AutoFight • Nightmare Loop
 --====================================================
-
-------------------------
--- AUTO RECONNECT SYSTEM
-------------------------
-local RECONNECT_URL = "https://www.roblox.com/share?code=3d89dd616b070a488f82036ee9e60918&type=Server"
-
-task.spawn(function()
-    game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
-        if State == Enum.TeleportState.Failed then
-            task.wait(2)
-            syn or queue_on_teleport or writefile()
-        end
-    end)
-
-    game:GetService("Players").LocalPlayer.Idled:Connect(function()
-        game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    end)
-end)
-
-local function reconnectNow()
-    pcall(function()
-        game:GetService("TeleportService"):TeleportToPlaceInstance(
-            0,
-            RECONNECT_URL,
-            game:GetService("Players").LocalPlayer
-        )
-    end)
-end
-
-
-------------------------
+-------------------------------
 -- NORMAL SCRIPT START
-------------------------
+-------------------------------
+
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -144,7 +113,6 @@ icon.MouseButton1Click:Connect(function()
     icon.Visible = false
 end)
 
--- BUTTONS
 local function createButton(txt,posY)
     local btn = Instance.new("TextButton", main)
     btn.Size = UDim2.new(1,-20,0,36)
@@ -276,3 +244,4 @@ task.spawn(function()
 end)
 
 print("FULL Modern Auto GUI (FINAL COMPLETE VERSION) Loaded!")
+
