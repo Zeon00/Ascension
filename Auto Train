@@ -65,17 +65,25 @@ local minimize = makeButton("-", UDim2.new(1, -70, 0, 5))
 local close = makeButton("X", UDim2.new(1, -35, 0, 5))
 close.BackgroundColor3 = Color3.fromRGB(180,50,50)
 
-local floatIcon = Instance.new("TextButton")
-floatIcon.Size = UDim2.new(0, 140, 0, 36)
+-- FLOAT ICON (bigger + draggable)
+local floatIcon = Instance.new("Frame")
+floatIcon.Size = UDim2.new(0, 160, 0, 44)
 floatIcon.Position = UDim2.new(0.85, 0, 0.10, 0)
 floatIcon.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-floatIcon.Text = "Simple Auto"
-floatIcon.TextColor3 = Color3.new(1,1,1)
-floatIcon.Font = Enum.Font.GothamBold
-floatIcon.TextSize = 16
 floatIcon.Visible = false
+floatIcon.Active = true
+floatIcon.Draggable = true
 floatIcon.Parent = screenGui
-Instance.new("UICorner", floatIcon)
+Instance.new("UICorner", floatIcon).CornerRadius = UDim.new(0, 10)
+
+local floatLabel = Instance.new("TextButton")
+floatLabel.Size = UDim2.new(1, 0, 1, 0)
+floatLabel.BackgroundTransparency = 1
+floatLabel.Text = "Simple Auto"
+floatLabel.TextColor3 = Color3.new(1,1,1)
+floatLabel.Font = Enum.Font.GothamBold
+floatLabel.TextSize = 16
+floatLabel.Parent = floatIcon
 
 minimize.MouseButton1Click:Connect(function()
 	mainFrame.Visible = false
@@ -86,7 +94,7 @@ close.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
-floatIcon.MouseButton1Click:Connect(function()
+floatLabel.MouseButton1Click:Connect(function()
 	mainFrame.Visible = true
 	floatIcon.Visible = false
 end)
@@ -180,11 +188,8 @@ dummyToggle.MouseButton1Click:Connect(function()
 	dummyToggle.BackgroundColor3 = dummyOn and Color3.fromRGB(0,180,90) or Color3.fromRGB(70,70,80)
 
 	if dummyOn then
-		dummyLoop = RunService.Heartbeat:Connect(function()
-			for i = 1, 10 do
-				task.defer(fireDummy)
-			end
-		end)
+		if dummyLoop then dummyLoop:Disconnect() end
+		dummyLoop = RunService.RenderStepped:Connect(fireDummy)
 	else
 		if dummyLoop then dummyLoop:Disconnect() end
 	end
@@ -196,8 +201,8 @@ end)
 local autoHitToggle = createToggle(mainFrame,"Auto Hit: OFF",0.38)
 local autoSkillToggle = createToggle(mainFrame,"Auto Skill Q/E/R: OFF",0.50)
 
-autoHitOn = false
-autoSkillOn = false
+local autoHitOn = false
+local autoSkillOn = false
 
 ---------------------------------------------------------------------
 -- LOAD COMBAT MODULE
@@ -350,6 +355,7 @@ yesBtn.MouseButton1Click:Connect(function()
 	rebirthToggle.Text = "Auto Rebirth: ON"
 	rebirthToggle.BackgroundColor3 = Color3.fromRGB(0,180,90)
 
+	if rebirthLoop then rebirthLoop:Disconnect() end
 	rebirthLoop = RunService.RenderStepped:Connect(function()
 		safeFire(function()
 			GameRemote:FireServer("Rebirth")
@@ -444,33 +450,46 @@ tpLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 end)
 
 ---------------------------------------------------------------------
--- DEFAULT SETTINGS
+-- DEFAULT SETTINGS (SET ALL OFF)
 ---------------------------------------------------------------------
-task.delay(0.5, function()
-	selectedDummy = "VIP"
-	vipBtn.BackgroundColor3 = Color3.fromRGB(0,180,90)
-	dummy1Btn.BackgroundColor3 = Color3.fromRGB(70,70,80)
+-- defaults: do NOT auto-enable anything on spawn
+selectedDummy = nil
+dummy1Btn.BackgroundColor3 = Color3.fromRGB(70,70,80)
+vipBtn.BackgroundColor3    = Color3.fromRGB(70,70,80)
 
-	dummyOn = true
-	dummyToggle.Text = "Auto Dummy: ON"
-	dummyToggle.BackgroundColor3 = Color3.fromRGB(0,180,90)
+dummyOn = false
+dummyToggle.Text = "Auto Dummy: OFF"
+dummyToggle.BackgroundColor3 = Color3.fromRGB(70,70,80)
 
-	if dummyLoop then dummyLoop:Disconnect() end
-	dummyLoop = RunService.RenderStepped:Connect(fireDummy)
+autoHitOn = false
+autoHitToggle.Text = "Auto Hit: OFF"
+autoHitToggle.BackgroundColor3 = Color3.fromRGB(70,70,80)
 
-	safeFire(function()
-		GameRemote:FireServer("Travel", "World19")
-	end)
-end)
+autoSkillOn = false
+autoSkillToggle.Text = "Auto Skill Q/E/R: OFF"
+autoSkillToggle.BackgroundColor3 = Color3.fromRGB(70,70,80)
+
+rebirthOn = false
+rebirthToggle.Text = "Auto Rebirth: OFF"
+rebirthToggle.BackgroundColor3 = Color3.fromRGB(70,70,80)
+
+-- NOTE: we do NOT auto-teleport on spawn anymore
+
 ---------------------------------------------------------------------
 -- AUTO FACE + TARGET FINDER
 ---------------------------------------------------------------------
 local function getNearestMob()
     local nearest, dist = nil, 50 -- max range 50 studs
 
+    if not workspace:FindFirstChild("Client") or not workspace.Client:FindFirstChild("Enemies") then
+        return nil
+    end
+
     for _, mob in ipairs(workspace.Client.Enemies:GetChildren()) do
         if mob:FindFirstChild("HumanoidRootPart") then
-            local d = (mob.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not hrp then break end
+            local d = (mob.HumanoidRootPart.Position - hrp.Position).Magnitude
             if d < dist then
                 dist = d
                 nearest = mob
@@ -483,7 +502,7 @@ end
 
 local function faceTarget(target)
     pcall(function()
-        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
         if hrp and target and target:FindFirstChild("HumanoidRootPart") then
             hrp.CFrame = CFrame.new(
                 hrp.Position,
@@ -537,4 +556,4 @@ task.spawn(function()
     end
 end)
 
-print("Full Stylish Auto GUI siap! Auto Hit + Auto Skill (real-time cooldown) + Auto Dummy + Auto Rebirth popup + Teleport")
+print("Full Stylish Auto GUI siap! (default = OFF) Auto Hit + Auto Skill (real-time cooldown) + Auto Dummy + Auto Rebirth popup + Teleport")
