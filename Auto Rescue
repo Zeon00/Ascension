@@ -254,5 +254,40 @@ task.spawn(function()
         end
     end
 end)
+-----------------------------------------------------
+-- AUTO HIDE RESULT + REMOVE DARK SCREEN
+-----------------------------------------------------
+local playerGui = player:WaitForChild("PlayerGui")
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+
+        local rescueUI = playerGui:FindFirstChild("Rescue")
+        if rescueUI then
+
+            -- HILANGKAN RESULTS
+            local results = rescueUI:FindFirstChild("Results")
+            if results and results.Visible == true then
+                results.Visible = false
+            end
+
+            -- HILANGKAN CLICK TO CONTINUE
+            local ctc = rescueUI:FindFirstChild("ClickToContinue")
+            if ctc and ctc.Visible == true then
+                ctc.Visible = false
+            end
+
+            -- HILANGKAN LAYER GELAP / DIM SCREEN
+            for _, v in ipairs(rescueUI:GetChildren()) do
+                if v:IsA("Frame") or v:IsA("ImageLabel") then
+                    if v.BackgroundTransparency < 1 then
+                        v.Visible = false
+                    end
+                end
+            end
+        end
+    end
+end)
 
 print("FULL Modern Auto GUI siap! MoveSpeed = 100, Muzan Portal support, semua toggle ON/OFF.")
