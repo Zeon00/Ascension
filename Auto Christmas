@@ -1,0 +1,320 @@
+--====================================================
+-- FINAL SAFE AUTO GRINCH (FULL VERSION)
+-- Speed 100 | Anti Void | No Empty GUI
+--====================================================
+
+-- SERVICES
+local Players = game:GetService("Players")
+local RS = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local Char = player.Character or player.CharacterAdded:Wait()
+local Hum = Char:WaitForChild("Humanoid")
+
+player.CharacterAdded:Connect(function(c)
+	Char = c
+	Hum = c:WaitForChild("Humanoid")
+end)
+
+-- REMOTE
+local ChristmasRemote = RS:WaitForChild("Remotes"):WaitForChild("Christmas")
+
+-- SETTINGS
+local WALK_SPEED = 100
+local BEHIND_DIST = 5
+
+-- STATES
+local running = false
+local autoHit = false
+local autoNightmare = false
+local autoBridge = false
+local autoLeave = false
+local alive = true
+
+
+local Enemies = Workspace.Client.Enemies
+
+--====================================================
+-- LOAD COMBAT
+--====================================================
+local Combat
+task.spawn(function()
+	repeat
+		for _, m in ipairs(getloadedmodules()) do
+			if m.Name == "CombatController" or m.Name == "Combat" then
+				local ok, mod = pcall(require, m)
+				if ok and type(mod) == "table" and mod.DetectHit then
+					Combat = mod
+				end
+			end
+		end
+		task.wait(0.2)
+	until Combat or not alive
+
+	if Combat then
+		Combat.Init(require(RS.Modules.Data))
+		Combat.Start()
+	end
+end)
+
+--====================================================
+-- SAFE MOVE BEHIND (ANTI VOID)
+--====================================================
+local function moveBehind(enemy)
+	if not enemy or not enemy.PrimaryPart then return end
+	if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+
+	local root = Char.HumanoidRootPart
+	local eCF = enemy.PrimaryPart.CFrame
+	local target = eCF.Position - eCF.LookVector * BEHIND_DIST
+
+	local params = RaycastParams.new()
+	params.FilterDescendantsInstances = {Char, enemy}
+	params.FilterType = Enum.RaycastFilterType.Blacklist
+
+	local ray = workspace:Raycast(target + Vector3.new(0,20,0), Vector3.new(0,-60,0), params)
+	if not ray then return end
+
+	Hum.WalkSpeed = WALK_SPEED
+	Hum:MoveTo(ray.Position + Vector3.new(0,2.5,0))
+end
+
+--====================================================
+-- TARGET LOGIC
+--====================================================
+local function getNormalMob()
+	for _, e in ipairs(Enemies:GetChildren()) do
+		if not e.Name:lower():find("grinch")
+			and e.PrimaryPart
+			and e:GetAttribute("Dead") ~= true
+			and not e:HasTag("Immortal")
+		then
+			return e
+		end
+	end
+end
+
+local function getGrinch()
+	for _, e in ipairs(Enemies:GetChildren()) do
+		if e.Name:lower():find("grinch")
+			and e.PrimaryPart
+			and e:GetAttribute("Dead") ~= true
+			and not e:HasTag("Immortal")
+		then
+			return e
+		end
+	end
+end
+
+--====================================================
+-- GUI SETUP
+--====================================================
+local CoreGui = game:GetService("CoreGui")
+if CoreGui:FindFirstChild("AutoGrinchFinal") then
+	CoreGui.AutoGrinchFinal:Destroy()
+end
+
+local gui = Instance.new("ScreenGui", CoreGui)
+gui.Name = "AutoGrinchFinal"
+gui.ResetOnSpawn = false
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,260,0,340)
+main.Position = UDim2.new(0.5,-130,0.4,-170)
+main.BackgroundColor3 = Color3.fromRGB(30,30,30)
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,12)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,-70,0,32)
+title.Position = UDim2.new(0,10,0,0)
+title.BackgroundTransparency = 1
+title.Text = "FINAL AUTO GRINCH"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 15
+title.TextColor3 = Color3.new(1,1,1)
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+local function topBtn(txt,x,color)
+	local b = Instance.new("TextButton", main)
+	b.Size = UDim2.new(0,28,0,24)
+	b.Position = UDim2.new(1,x,0,4)
+	b.Text = txt
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 14
+	b.TextColor3 = Color3.new(1,1,1)
+	b.BackgroundColor3 = color
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,6)
+	return b
+end
+
+local minimize = topBtn("-", -64, Color3.fromRGB(90,90,90))
+local close = topBtn("X", -32, Color3.fromRGB(200,60,60))
+
+local icon = Instance.new("TextButton", gui)
+icon.Size = UDim2.new(0,56,0,56)
+icon.Position = UDim2.new(0.5,-28,0.4,-28)
+icon.Text = "🎄"
+icon.Font = Enum.Font.GothamBold
+icon.TextSize = 28
+icon.TextColor3 = Color3.new(1,1,1)
+icon.BackgroundColor3 = Color3.fromRGB(220,70,50)
+icon.Visible = false
+icon.Active = true
+icon.Draggable = true
+Instance.new("UICorner", icon).CornerRadius = UDim.new(0,12)
+
+local function btn(txt,y)
+	local b = Instance.new("TextButton", main)
+	b.Size = UDim2.new(1,-20,0,36)
+	b.Position = UDim2.new(0,10,0,y)
+	b.Text = txt
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 14
+	b.TextColor3 = Color3.new(1,1,1)
+	b.BackgroundColor3 = Color3.fromRGB(120,120,120)
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
+	return b
+end
+
+local runBtn = btn("Start Auto", 46)
+local hitBtn = btn("Auto Hit: OFF", 92)
+local lobbyBtn = btn("Enter Lobby", 138)
+local nightBtn = btn("Auto Nightmare: OFF", 184)
+local bridgeBtn = btn("Auto Bridge: OFF", 230)
+local leaveBtn = btn("Leave Dungeon", 276)
+
+--====================================================
+-- GUI LOGIC
+--====================================================
+minimize.MouseButton1Click:Connect(function()
+	main.Visible = false
+	icon.Visible = true
+end)
+
+icon.MouseButton1Click:Connect(function()
+	icon.Visible = false
+	main.Visible = true
+end)
+
+close.MouseButton1Click:Connect(function()
+	alive = false
+	gui:Destroy()
+end)
+
+runBtn.MouseButton1Click:Connect(function()
+	running = not running
+	runBtn.Text = running and "Stop Auto" or "Start Auto"
+	runBtn.BackgroundColor3 = running and Color3.fromRGB(0,180,90) or Color3.fromRGB(120,120,120)
+end)
+
+hitBtn.MouseButton1Click:Connect(function()
+	autoHit = not autoHit
+	hitBtn.Text = autoHit and "Auto Hit: ON" or "Auto Hit: OFF"
+	hitBtn.BackgroundColor3 = autoHit and Color3.fromRGB(0,180,90) or Color3.fromRGB(120,120,120)
+end)
+
+lobbyBtn.MouseButton1Click:Connect(function()
+	ChristmasRemote:FireServer("EnterLobby")
+end)
+
+nightBtn.MouseButton1Click:Connect(function()
+	autoNightmare = not autoNightmare
+	nightBtn.Text = autoNightmare and "Auto Nightmare: ON" or "Auto Nightmare: OFF"
+	nightBtn.BackgroundColor3 = autoNightmare and Color3.fromRGB(180,60,255) or Color3.fromRGB(120,120,120)
+end)
+
+bridgeBtn.MouseButton1Click:Connect(function()
+	autoBridge = not autoBridge
+	bridgeBtn.Text = autoBridge and "Auto Bridge: ON" or "Auto Bridge: OFF"
+	bridgeBtn.BackgroundColor3 = autoBridge and Color3.fromRGB(255,170,0) or Color3.fromRGB(120,120,120)
+end)
+
+leaveBtn.MouseButton1Click:Connect(function()
+	leaveBtn.Text = "Leaving..."
+	leaveBtn.BackgroundColor3 = Color3.fromRGB(200,60,60)
+
+	pcall(function()
+		local args = { "Exit" }
+		game:GetService("ReplicatedStorage")
+			:WaitForChild("Remotes")
+			:WaitForChild("Christmas")
+			:FireServer(unpack(args))
+	end)
+
+	task.delay(1, function()
+		if leaveBtn then
+			leaveBtn.Text = "Leave Dungeon"
+			leaveBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+		end
+	end)
+end)
+
+--====================================================
+-- NIGHTMARE LOOP
+--====================================================
+task.spawn(function()
+	while alive do
+		task.wait(2)
+		if autoNightmare then
+			pcall(function()
+				ChristmasRemote:FireServer("Enter","Nightmare")
+			end)
+		end
+	end
+end)
+
+--====================================================
+-- MAIN AUTO LOOP
+--====================================================
+task.spawn(function()
+	while alive do
+		task.wait(0.1)
+		if not running or not Combat then continue end
+
+		local mob = getNormalMob()
+		if mob then
+			moveBehind(mob)
+		else
+			local grinch = getGrinch()
+			if grinch then
+				moveBehind(grinch)
+			end
+		end
+
+		if autoHit and Combat.CombatDebounce == false then
+			pcall(function()
+				Combat.DetectHit(true)
+			end)
+		end
+	end
+end)
+
+task.spawn(function()
+	while alive do
+		task.wait(1) -- delay aman
+		if autoBridge then
+			pcall(function()
+				local args = {
+					{
+						{
+							"\001",
+							"\139!\027(\219OO\n\175\243\142\244y\242 =",
+							"Christmas"
+						},
+						"\004"
+					}
+				}
+
+				game:GetService("ReplicatedStorage")
+					:WaitForChild("BridgeNet")
+					:WaitForChild("dataRemoteEvent")
+					:FireServer(unpack(args))
+			end)
+		end
+	end
+end)
+
+print("FINAL AUTO GRINCH LOADED | SPEED 100 | STABLE")
