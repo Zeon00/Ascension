@@ -1,6 +1,6 @@
 --====================================================
--- FINAL AUTO GRINCH | FULL CLEAN VERSION
--- GUI FIXED | NO EMPTY | FORCE NIGHTMARE
+-- FINAL SAFE AUTO GRINCH (FULL VERSION)
+-- Speed 100 | Anti Void | No Empty GUI | AutoFight
 --====================================================
 
 -- SERVICES
@@ -30,18 +30,20 @@ local BEHIND_DIST = 5
 local running = true
 local autoHit = true
 local autoNightmare = true
-local autoFight = true
-local autoHatch = false
+local autoBridge = false
 local autoLeave = false
+local autoFight = true -- NO LOOP
+local waitingResult = false
 local alive = true
 
 local Enemies = Workspace.Client.Enemies
 
 --====================================================
--- AUTO FIGHT (DEFAULT ON)
+-- AUTO FIGHT FIRE (NO LOOP)
 --====================================================
 pcall(function()
-	CombatRemote:FireServer("AutoFight", true)
+	local args = { "AutoFight", true }
+	CombatRemote:FireServer(unpack(args))
 end)
 
 --====================================================
@@ -74,6 +76,7 @@ local function moveBehind(enemy)
 	if not enemy or not enemy.PrimaryPart then return end
 	if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
 
+	local root = Char.HumanoidRootPart
 	local eCF = enemy.PrimaryPart.CFrame
 	local target = eCF.Position - eCF.LookVector * BEHIND_DIST
 
@@ -91,20 +94,30 @@ end
 --====================================================
 -- TARGET LOGIC
 --====================================================
-local function getMob(grinch)
+local function getNormalMob()
 	for _, e in ipairs(Enemies:GetChildren()) do
-		if e.PrimaryPart and e:GetAttribute("Dead") ~= true then
-			if grinch and e.Name:lower():find("grinch") then
-				return e
-			elseif not grinch and not e.Name:lower():find("grinch") then
-				return e
-			end
+		if not e.Name:lower():find("grinch")
+			and e.PrimaryPart
+			and e:GetAttribute("Dead") ~= true
+			and not e:HasTag("Immortal") then
+			return e
+		end
+	end
+end
+
+local function getGrinch()
+	for _, e in ipairs(Enemies:GetChildren()) do
+		if e.Name:lower():find("grinch")
+			and e.PrimaryPart
+			and e:GetAttribute("Dead") ~= true
+			and not e:HasTag("Immortal") then
+			return e
 		end
 	end
 end
 
 --====================================================
--- GUI SETUP (FIXED)
+-- GUI SETUP
 --====================================================
 if CoreGui:FindFirstChild("AutoGrinchFinal") then
 	CoreGui.AutoGrinchFinal:Destroy()
@@ -115,8 +128,8 @@ gui.Name = "AutoGrinchFinal"
 gui.ResetOnSpawn = false
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0,260,0,360)
-main.Position = UDim2.new(0.5,-130,0.4,-180)
+main.Size = UDim2.new(0,260,0,380)
+main.Position = UDim2.new(0.5,-130,0.4,-190)
 main.BackgroundColor3 = Color3.fromRGB(30,30,30)
 main.Active = true
 main.Draggable = true
@@ -132,7 +145,6 @@ title.TextSize = 15
 title.TextColor3 = Color3.new(1,1,1)
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- TOP BUTTONS
 local function topBtn(txt,x,color)
 	local b = Instance.new("TextButton", main)
 	b.Size = UDim2.new(0,28,0,24)
@@ -175,12 +187,17 @@ local function btn(txt,y)
 	return b
 end
 
-local runBtn = btn("Auto Start: ON", 46)
-local hitBtn = btn("Auto Hit: ON", 92)
-local fightBtn = btn("Auto Fight: ON", 138)
-local nightBtn = btn("Auto Nightmare: ON", 184)
-local hatchBtn = btn("Auto Hatch: OFF", 230)
-local leaveBtn = btn("Leave Dungeon", 276)
+local runBtn    = btn("Stop Auto", 46)
+local hitBtn    = btn("Auto Hit: ON", 92)
+local fightBtn  = btn("Auto Fight: ON", 138)
+local nightBtn  = btn("Auto Nightmare: ON", 184)
+local bridgeBtn = btn("Auto Hatch Pet: OFF", 230)
+local leaveBtn  = btn("Leave Dungeon", 276)
+
+runBtn.BackgroundColor3 = Color3.fromRGB(0,180,90)
+hitBtn.BackgroundColor3 = Color3.fromRGB(0,180,90)
+fightBtn.BackgroundColor3 = Color3.fromRGB(0,180,90)
+nightBtn.BackgroundColor3 = Color3.fromRGB(50,200,60)
 
 --====================================================
 -- GUI LOGIC
@@ -202,43 +219,64 @@ end)
 
 runBtn.MouseButton1Click:Connect(function()
 	running = not running
-	runBtn.Text = "Auto Start: "..(running and "ON" or "OFF")
+	runBtn.Text = running and "Stop Auto" or "Start Auto"
+	runBtn.BackgroundColor3 = running and Color3.fromRGB(0,180,90) or Color3.fromRGB(120,120,120)
 end)
 
 hitBtn.MouseButton1Click:Connect(function()
 	autoHit = not autoHit
-	hitBtn.Text = "Auto Hit: "..(autoHit and "ON" or "OFF")
+	hitBtn.Text = autoHit and "Auto Hit: ON" or "Auto Hit: OFF"
+	hitBtn.BackgroundColor3 = autoHit and Color3.fromRGB(0,180,90) or Color3.fromRGB(120,120,120)
 end)
 
 fightBtn.MouseButton1Click:Connect(function()
 	autoFight = not autoFight
-	fightBtn.Text = "Auto Fight: "..(autoFight and "ON" or "OFF")
-	CombatRemote:FireServer("AutoFight", autoFight)
+	fightBtn.Text = autoFight and "Auto Fight: ON" or "Auto Fight: OFF"
+	fightBtn.BackgroundColor3 = autoFight and Color3.fromRGB(0,180,90) or Color3.fromRGB(120,120,120)
+
+	pcall(function()
+		local args = { "AutoFight", autoFight }
+		CombatRemote:FireServer(unpack(args))
+	end)
 end)
 
 nightBtn.MouseButton1Click:Connect(function()
 	autoNightmare = not autoNightmare
-	nightBtn.Text = "Auto Nightmare: "..(autoNightmare and "ON" or "OFF")
+	waitingResult = false
+	nightBtn.Text = autoNightmare and "Auto Nightmare: ON" or "Auto Nightmare: OFF"
+	nightBtn.BackgroundColor3 = autoNightmare and Color3.fromRGB(50,200,60) or Color3.fromRGB(120,120,120)
 end)
 
-hatchBtn.MouseButton1Click:Connect(function()
-	autoHatch = not autoHatch
-	hatchBtn.Text = "Auto Hatch: "..(autoHatch and "ON" or "OFF")
+bridgeBtn.MouseButton1Click:Connect(function()
+	autoBridge = not autoBridge
+	bridgeBtn.Text = autoBridge and "Auto Hatch Pet: ON" or "Auto Hatch Pet: OFF"
+	bridgeBtn.BackgroundColor3 = autoBridge and Color3.fromRGB(255,170,0) or Color3.fromRGB(120,120,120)
 end)
 
 leaveBtn.MouseButton1Click:Connect(function()
-	ChristmasRemote:FireServer("Exit")
+	pcall(function()
+		ChristmasRemote:FireServer("Exit")
+	end)
 end)
 
 --====================================================
--- FORCE AUTO NIGHTMARE (DIRECT)
+-- NIGHTMARE LOOP
 --====================================================
 task.spawn(function()
 	while alive do
-		task.wait(3)
-		if autoNightmare then
-			pcall(function()
-				ChristmasRemote:FireServer("Enter","Nightmare")
+		task.wait(2)
+		if not autoNightmare then continue end
+
+		local results = RS.UI.Christmas:FindFirstChild("Results")
+		if results and results.Visible and not waitingResult then
+			waitingResult = true
+			task.delay(1,function()
+				if autoNightmare then
+					pcall(function()
+						ChristmasRemote:FireServer("Enter","Nightmare")
+					end)
+				end
+				waitingResult = false
 			end)
 		end
 	end
@@ -252,13 +290,17 @@ task.spawn(function()
 		task.wait(0.1)
 		if not running or not Combat then continue end
 
-		local mob = getMob(false) or getMob(true)
-		if mob then moveBehind(mob) end
+		local mob = getNormalMob() or getGrinch()
+		if mob then
+			moveBehind(mob)
+		end
 
 		if autoHit and Combat.CombatDebounce == false then
-			Combat.DetectHit(true)
+			pcall(function()
+				Combat.DetectHit(true)
+			end)
 		end
 	end
 end)
 
-print("FINAL AUTO GRINCH FULL LOADED | NO EMPTY GUI")
+print("FINAL AUTO GRINCH LOADED | FULL | STABLE")
