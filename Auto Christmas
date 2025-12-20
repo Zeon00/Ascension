@@ -28,6 +28,7 @@ local BEHIND_DIST = 5
 local running = false
 local autoHit = false
 local autoNightmare = false
+local waitingResult = false
 local autoBridge = false
 local autoLeave = false
 local alive = true
@@ -183,7 +184,7 @@ local runBtn = btn("Start Auto", 46)
 local hitBtn = btn("Auto Hit: OFF", 92)
 local lobbyBtn = btn("Enter Lobby", 138)
 local nightBtn = btn("Auto Nightmare: OFF", 184)
-local bridgeBtn = btn("Auto Bridge: OFF", 230)
+local bridgeBtn = btn("Auto Hatch Pet: OFF", 230)
 local leaveBtn = btn("Leave Dungeon", 276)
 
 --====================================================
@@ -222,13 +223,27 @@ end)
 
 nightBtn.MouseButton1Click:Connect(function()
 	autoNightmare = not autoNightmare
-	nightBtn.Text = autoNightmare and "Auto Nightmare: ON" or "Auto Nightmare: OFF"
-	nightBtn.BackgroundColor3 = autoNightmare and Color3.fromRGB(180,60,255) or Color3.fromRGB(120,120,120)
+	waitingResult = false
+
+	nightmareBtn.Text = autoNightmare and "Auto Nightmare: ON" or "Auto Nightmare: OFF"
+	nightmareBtn.BackgroundColor3 = autoNightmare
+		and Color3.fromRGB(50,200,60)
+		or Color3.fromRGB(120,120,120)
+
+	if autoNightmare then
+		pcall(function()
+			game:GetService("ReplicatedStorage")
+				:WaitForChild("Remotes")
+				:WaitForChild("Christmas")
+				:FireServer("Enter","Nightmare")
+		end)
+	end
 end)
+
 
 bridgeBtn.MouseButton1Click:Connect(function()
 	autoBridge = not autoBridge
-	bridgeBtn.Text = autoBridge and "Auto Bridge: ON" or "Auto Bridge: OFF"
+	bridgeBtn.Text = autoBridge and "Auto Hatch Pet: ON" or "Auto Hatch Pet: OFF"
 	bridgeBtn.BackgroundColor3 = autoBridge and Color3.fromRGB(255,170,0) or Color3.fromRGB(120,120,120)
 end)
 
@@ -256,15 +271,33 @@ end)
 -- NIGHTMARE LOOP
 --====================================================
 task.spawn(function()
-	while alive do
-		task.wait(2)
-		if autoNightmare then
-			pcall(function()
-				ChristmasRemote:FireServer("Enter","Nightmare")
+	while task.wait(2) do
+		if not autoNightmare then continue end
+
+		local results =
+			game:GetService("ReplicatedStorage")
+				:WaitForChild("UI")
+				:WaitForChild("Christmas")
+				:FindFirstChild("Results")
+
+		if results and results.Visible and not waitingResult then
+			waitingResult = true
+
+			task.delay(1, function()
+				if autoNightmare then
+					pcall(function()
+						game:GetService("ReplicatedStorage")
+							:WaitForChild("Remotes")
+							:WaitForChild("Christmas")
+							:FireServer("Enter","Nightmare")
+					end)
+				end
+				waitingResult = false
 			end)
 		end
 	end
 end)
+
 
 --====================================================
 -- MAIN AUTO LOOP
