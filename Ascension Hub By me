@@ -213,4 +213,9 @@ GUI:CreateButton({
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Auto%20Claim"))()
 end})
-
+GUI:CreateButton({
+    parent = main, 
+    text = "Christmas Event", 
+    callback = function()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Auto%20Christmas"))()
+end})
