@@ -308,7 +308,7 @@ end)
 task.spawn(function()
 	while alive do
 		task.wait(1)
-		if autoHatch then
+		if autoBridge then
 			pcall(function()
 				game:GetService("ReplicatedStorage")
 					.BridgeNet.dataRemoteEvent:FireServer({
