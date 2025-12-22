@@ -287,9 +287,10 @@ GUI:CreateButton({
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Teleport%20Machine"))()
 end})
-GUI:CreateButton({
+GUI:CreateToggle({
     parent = main, 
-    text = "Auto  Claim", 
+    text = "Auto Claim", 
+    default = true, 
     callback = function()
 local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zeon00/Ascension/refs/heads/main/Auto%20Claim"))()
 end})
