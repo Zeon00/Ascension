@@ -260,18 +260,23 @@ leaveBtn.MouseButton1Click:Connect(function()
 end)
 
 --====================================================
--- NIGHTMARE LOOP
+-- AUTO NIGHTMARE (DETECT LOBBY READY)
 --====================================================
+local lastEnter = 0
+
 task.spawn(function()
 	while alive do
-		task.wait(2)
+		task.wait(1)
 		if not autoNightmare then continue end
+		if tick() - lastEnter < 6 then continue end
 
-		local results = RS.UI.Christmas:FindFirstChild("Results")
-		if results and results.Visible and not waitingResult then
+		-- lobby condition: tidak ada enemy
+		if #Enemies:GetChildren() == 0 then
+			lastEnter = tick()
 			waitingResult = true
-			task.delay(1,function()
-				if autoNightmare then
+
+			task.delay(2.5,function() -- tunggu lobby FULLY READY
+				if autoNightmare and alive then
 					pcall(function()
 						ChristmasRemote:FireServer("Enter","Nightmare")
 					end)
@@ -281,6 +286,7 @@ task.spawn(function()
 		end
 	end
 end)
+
 
 --====================================================
 -- MAIN AUTO LOOP
