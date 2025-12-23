@@ -370,11 +370,11 @@ local worldData = {
 		"\000\000\001\001\000\006Freeza"
     },
     ["7"] = {
-        "\000\000\001\001\000\tTen Pupil",
-        "\000\000\001\001\000\vTen Student",
-        "\000\000\001\001\000\fTen Disciple",
-        "\000\000\001\001\000\vTen Scholar",
-        "\000\000\001\001\000\nTen Sensei"
+		"\000\000\001\001\000\017Blood Manipulator",
+		"\000\000\001\001\000\014King of Curses",
+		"\000\000\001\001\000\017Curse Manipulator",
+		"\000\000\001\001\000\vHuman Curse",
+		"\000\000\001\001\000\015Sorcerer Killer"
     },
     ["8"] = {
         "\000\000\001\001\000\fMuichi Pupil",
