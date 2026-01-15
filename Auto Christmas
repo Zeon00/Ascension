@@ -35,6 +35,8 @@ local autoLeave = false
 local autoFight = true -- NO LOOP
 local waitingResult = false
 local alive = true
+local autoBuyStrength = false
+local autoBuyCoins = false
 
 local Enemies = Workspace.Client.Enemies
 
@@ -128,7 +130,7 @@ gui.Name = "AutoGrinchFinal"
 gui.ResetOnSpawn = false
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0,260,0,380)
+main.Size = UDim2.new(0,260,0,440)
 main.Position = UDim2.new(0.5,-130,0.4,-190)
 main.BackgroundColor3 = Color3.fromRGB(30,30,30)
 main.Active = true
@@ -192,6 +194,8 @@ local hitBtn    = btn("Auto Hit: ON", 92)
 local fightBtn  = btn("Auto Fight: ON", 138)
 local nightBtn  = btn("Auto Nightmare: ON", 184)
 local bridgeBtn = btn("Auto Hatch Pet: OFF", 230)
+local strengthBtn = btn("Auto Buy Strength: OFF", 322)
+local coinBtn     = btn("Auto Buy Coins: OFF", 368)
 local leaveBtn  = btn("Leave Dungeon", 276)
 
 runBtn.BackgroundColor3 = Color3.fromRGB(0,180,90)
@@ -251,6 +255,18 @@ bridgeBtn.MouseButton1Click:Connect(function()
 	autoBridge = not autoBridge
 	bridgeBtn.Text = autoBridge and "Auto Hatch Pet: ON" or "Auto Hatch Pet: OFF"
 	bridgeBtn.BackgroundColor3 = autoBridge and Color3.fromRGB(255,170,0) or Color3.fromRGB(120,120,120)
+end)
+
+strengthBtn.MouseButton1Click:Connect(function()
+	autoBuyStrength = not autoBuyStrength
+	strengthBtn.Text = autoBuyStrength and "Auto Buy Strength: ON" or "Auto Buy Strength: OFF"
+	strengthBtn.BackgroundColor3 = autoBuyStrength and Color3.fromRGB(0,180,90) or Color3.fromRGB(120,120,120)
+end)
+
+coinBtn.MouseButton1Click:Connect(function()
+	autoBuyCoins = not autoBuyCoins
+	coinBtn.Text = autoBuyCoins and "Auto Buy Coins: ON" or "Auto Buy Coins: OFF"
+	coinBtn.BackgroundColor3 = autoBuyCoins and Color3.fromRGB(255,170,0) or Color3.fromRGB(120,120,120)
 end)
 
 leaveBtn.MouseButton1Click:Connect(function()
@@ -339,6 +355,26 @@ task.spawn(function()
 				.dataRemoteEvent
 				:FireServer(unpack(args))
 		end)
+	end
+end)
+--====================================================
+-- AUTO BUY LOOP (STRENGTH & COINS)
+--====================================================
+task.spawn(function()
+	while alive do
+		task.wait(0.1) -- delay aman
+
+		if autoBuyStrength then
+			pcall(function()
+				ChristmasRemote:FireServer("BuyItem", "Strength")
+			end)
+		end
+
+		if autoBuyCoins then
+			pcall(function()
+				ChristmasRemote:FireServer("BuyItem", "Coins")
+			end)
+		end
 	end
 end)
 
