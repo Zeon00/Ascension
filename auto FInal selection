@@ -233,7 +233,7 @@ task.spawn(function()
 		
 		-- Nightmare
 		if getNight() then
-			Remotes:FireServer("Enter","Medium")
+			Remotes:FireServer("Enter","Nightmare")
 		end
 		
 		-- Auto Slayer Helper
